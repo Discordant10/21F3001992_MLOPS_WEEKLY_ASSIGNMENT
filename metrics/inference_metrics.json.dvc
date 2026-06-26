@@ -1,0 +1,5 @@
+outs:
+- md5: 43d6ec242fa9540e662e73ac37c25f36
+  size: 23
+  hash: md5
+  path: inference_metrics.json
