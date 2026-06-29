@@ -1,0 +1,40 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model artifacts
+*.pkl
+*.joblib
+
+# Logs
+*.log
+
+# Coverage / testing
+.coverage
+.pytest_cache/
+
+# DVC cache
+.dvc/cache/
+
+# Feast registry (optional - see note below)
+data/registry.db
+
+# Temporary files
+*.tmp
