@@ -9,17 +9,15 @@ from datetime import timedelta
 
 
 iris_source = FileSource(
-    path="../data/iris_data_adapted_for_feast.parquet                               ",
+    path="../data/iris_data_adapted_for_feast.parquet",
     timestamp_field="event_timestamp",
     created_timestamp_column="created_timestamp",
 )
-
 
 iris = Entity(
     name="iris_id",
     join_keys=["iris_id"],
 )
-
 
 iris_feature_view = FeatureView(
     name="iris_features",

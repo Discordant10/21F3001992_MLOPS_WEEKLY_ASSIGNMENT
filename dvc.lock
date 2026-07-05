@@ -1,0 +1,10 @@
+schema: '2.0'
+stages:
+  feast_apply:
+    cmd: feast apply
+  feast_materialize:
+    cmd: feast materialize-incremental 2100-01-01T00:00:00
+  train:
+    cmd: python train.py
+  inference:
+    cmd: python inference.py

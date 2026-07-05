@@ -1,6 +1,7 @@
 import joblib
 from feast import FeatureStore
 from pathlib import Path
+import pandas as pd
 
 # Locate feature repository
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -31,12 +32,12 @@ features = store.get_online_features(
 print(features)
 
 #Convert to 2D array which the model expects
-X = [[
-    features["sepal_length"][0],
-    features["sepal_width"][0],
-    features["petal_length"][0],
-    features["petal_width"][0],
-]]
+X = pd.DataFrame({
+    "sepal_length": [features["sepal_length"][0]],
+    "sepal_width": [features["sepal_width"][0]],
+    "petal_length": [features["petal_length"][0]],
+    "petal_width": [features["petal_width"][0]],
+})
 
 #Predict
 prediction = model.predict(X)
