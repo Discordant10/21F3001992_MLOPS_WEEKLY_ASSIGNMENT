@@ -14,8 +14,16 @@ store = FeatureStore(
 MODEL_PATH = PROJECT_ROOT / "models" / "model.pkl"
 model = joblib.load(MODEL_PATH)
 
-#Choose Dataset ID (hardcoded for now)
-iris_id = 1001
+#Choose Dataset ID from arguments
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--id",
+    type=int,
+    default=1001,
+)
+args = parser.parse_args()
+iris_id = args.id
 
 #Retrieve features
 features = store.get_online_features(

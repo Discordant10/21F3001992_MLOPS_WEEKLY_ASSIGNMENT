@@ -66,8 +66,7 @@ training_df = training_df.merge(
         "event_timestamp"
     ]
 )
-print(training_df.head())
-
+print("Retrieved historical features from Feast.")
 
 # Create train test splits
 X = training_df[

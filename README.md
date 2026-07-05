@@ -1,283 +1,316 @@
-# Week 2 Assignment – Integrating DVC into the IRIS ML Pipeline
+# MLOps Weekly Assignment – Week 3
 
-## Student Details
+## Integrating Feast Feature Store into the IRIS Pipeline
 
-* **Student ID:** 21F3001992
+### Student Details
+
+* **Roll Number:** 21F3001992
 * **Course:** MLOps
-* **Week:** 2
+* **Assignment:** Week 3 – Feast Feature Store Integration
 
 ---
 
 # Project Overview
 
-This project demonstrates the integration of **Data Version Control (DVC)** into an IRIS machine learning pipeline.
+This project extends the Week 2 MLOps pipeline by integrating the **Feast Feature Store** into the IRIS machine learning workflow.
 
-The objective is to version control datasets and trained model artifacts while storing the actual data in a **Google Cloud Storage (GCS)** remote. Git is used for versioning the source code and DVC metadata, while DVC manages large files such as datasets and trained models.
+The objective is to eliminate training-serving skew by ensuring that both model training and inference retrieve engineered features from a single feature store.
 
-The project includes:
-
-* DVC initialization
-* Google Cloud Storage configured as the DVC remote
-* Versioning of datasets and trained models
-* Training and inference scripts
-* Dataset augmentation across multiple iterations
-* Switching between dataset/model versions using Git and DVC checkout
+The project retains **DVC** for reproducibility while introducing **Feast** for feature management.
 
 ---
 
-# Repository Structure
+# Objectives
 
-```text
-21F3001992_MLOPS_WEEKLY_ASSIGNMENT
+* Build a local Feast Feature Repository.
+* Define Entity, Data Source and Feature View.
+* Register feature definitions using Feast.
+* Materialize features into the online store.
+* Train the model using Feast Offline Store.
+* Perform inference using Feast Online Store.
+* Maintain reproducibility using DVC.
 
+---
+
+# Project Structure
+
+```
+21F3001992_MLOPS_WEEKLY_ASSIGNMENT/
+
+│
 ├── data/
-│   └── iris.csv.dvc
+│   ├── iris_data_adapted_for_feast.parquet
+│   └── iris_data_adapted_for_feast.csv
+│
+├── feature_repo/
+│   ├── feature_store.yaml
+│   ├── features.py
+│   └── data/
+│       ├── registry.db
+│       └── online_store.db
 │
 ├── models/
-│   └── model.pkl.dvc
+│   └── model.pkl
 │
 ├── metrics/
-│   ├── train_metrics.json.dvc
-│   ├── inference_metrics.json.dvc
-│   └── classification_report.txt.dvc
+│   ├── train_metrics.json
+│   └── inference_metrics.json
 │
 ├── train.py
 ├── inference.py
-├── main.ipynb
-├── requirements.txt
 ├── dvc.yaml
 ├── dvc.lock
-├── README.md
-├── .gitignore
-└── .dvc/
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-# Technology Stack
+# Technologies Used
 
-* Python
-* Google Cloud Platform (Vertex AI Workbench)
-* Google Cloud Storage
-* Git
+* Python 3.11
+* Feast 0.45
 * DVC
-* Scikit-learn
+* Scikit-Learn
 * Pandas
+* Joblib
+* SQLite
+* PyArrow
 
 ---
 
-# DVC Remote Storage
+# Feature Store Design
 
-The project uses **Google Cloud Storage** as the default DVC remote.
+## Entity
 
-The remote stores:
+```
+iris_id
+```
 
-* Dataset versions
-* Trained model versions
-* Metrics
-* Other tracked artifacts
-
-Git stores only lightweight `.dvc` pointer files.
+Each Iris plant is uniquely identified using `iris_id`.
 
 ---
 
-# Project Workflow
+## Data Source
 
-1. Load the IRIS dataset.
-2. Store the dataset under the `data/` directory.
-3. Track the dataset using DVC.
-4. Train a Random Forest classifier.
-5. Save the trained model under `models/`.
-6. Save training metrics under `metrics/`.
-7. Track model and metrics using DVC.
-8. Run inference.
-9. Save inference metrics and classification report.
-10. Track updated artifacts using DVC.
+```
+iris_data_adapted_for_feast.parquet
+```
+
+The dataset contains:
+
+* iris_id
+* event_timestamp
+* created_timestamp
+* sepal_length
+* sepal_width
+* petal_length
+* petal_width
+* species
+
+---
+
+## Feature View
+
+The feature view exposes the following features:
+
+* sepal_length
+* sepal_width
+* petal_length
+* petal_width
+
+The **species** column is intentionally excluded from the Feature View because it is the prediction target (label) rather than an input feature.
+
+---
+
+# Pipeline Architecture
+
+```
+                DVC
+
+                 │
+
+                 ▼
+
+        Feast Apply
+
+                 │
+
+                 ▼
+
+       Materialize Features
+
+                 │
+
+        ┌────────┴────────┐
+
+        ▼                 ▼
+
+Offline Store      Online Store
+
+        │                 │
+
+        ▼                 ▼
+
+     Training        Inference
+
+        │                 │
+
+        └────────┬────────┘
+
+                 ▼
+
+          Random Forest Model
+```
+
+---
+
+# Training Workflow
+
+1. Read entity IDs and timestamps.
+2. Retrieve historical features using Feast Offline Store.
+3. Merge retrieved features with labels.
+4. Split into training and testing datasets.
+5. Train Random Forest classifier.
+6. Save trained model.
+7. Save training metrics.
+
+---
+
+# Inference Workflow
+
+1. Accept an Iris Entity ID.
+2. Retrieve latest feature values from Feast Online Store.
+3. Construct inference feature vector.
+4. Load trained model.
+5. Predict Iris species.
+
+---
+
+# DVC Pipeline
+
+The project uses DVC to orchestrate the complete workflow.
+
+```
+dvc repro
+
+↓
+
+feast apply
+
+↓
+
+feast materialize
+
+↓
+
+python train.py
+
+↓
+
+python inference.py
+```
 
 ---
 
 # Running the Project
 
-## Train the Model
+## 1. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 2. Apply Feast definitions
+
+```bash
+cd feature_repo
+
+feast apply
+```
+
+---
+
+## 3. Materialize features
+
+```bash
+feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
+```
+
+---
+
+## 4. Train the model
 
 ```bash
 python train.py
 ```
 
-The script:
-
-* Loads `data/iris.csv`
-* Splits the dataset into training and testing sets
-* Trains a Random Forest classifier
-* Saves the trained model
-* Saves training metrics
-
 ---
 
-## Run Inference
+## 5. Perform inference
 
 ```bash
 python inference.py
 ```
 
-The script:
-
-* Loads the trained model
-* Evaluates it on the test split
-* Generates predictions
-* Saves inference metrics
-* Saves the classification report
-
 ---
 
-# DVC Commands Used
-
-## Initialize DVC
+## 6. Execute the complete pipeline
 
 ```bash
-dvc init
+dvc repro
 ```
 
 ---
 
-## Configure GCS Remote
+# Outputs
 
-```bash
-dvc remote add -d gcsremote gs://<YOUR_DVC_BUCKET>
+Training generates:
+
+```
+models/model.pkl
+
+metrics/train_metrics.json
+```
+
+Inference generates:
+
+```
+metrics/inference_metrics.json
 ```
 
 ---
 
-## Track Dataset
+# Assignment Tasks Completed
 
-```bash
-dvc add data/iris.csv
-```
-
----
-
-## Track Model
-
-```bash
-dvc add models/model.pkl
-```
-
----
-
-## Track Metrics
-
-```bash
-dvc add metrics/train_metrics.json
-dvc add metrics/inference_metrics.json
-dvc add metrics/classification_report.txt
-```
+| Task                        | Status |
+| --------------------------- | ------ |
+| Initialize Feast Repository | ✅      |
+| Define Entity               | ✅      |
+| Define Data Source          | ✅      |
+| Define Feature View         | ✅      |
+| Apply Feature Definitions   | ✅      |
+| Materialize Features        | ✅      |
+| Offline Feature Retrieval   | ✅      |
+| Model Training Using Feast  | ✅      |
+| Online Feature Retrieval    | ✅      |
+| Real-time Inference         | ✅      |
+| DVC Integration             | ✅      |
 
 ---
 
-## Push Data to Remote
+# Notes
 
-```bash
-dvc push
-```
-
----
-
-## Pull Data from Remote
-
-```bash
-dvc pull
-```
+* Feast is used as the single source of truth for feature retrieval.
+* DVC is retained for pipeline reproducibility.
+* Training uses Feast Offline Store (`get_historical_features()`).
+* Inference uses Feast Online Store (`get_online_features()`).
+* The `species` column is used only as the prediction label and is not included in the Feature View to avoid target leakage.
 
 ---
 
-## Restore Files
+# Future Work
 
-```bash
-dvc checkout
-```
-
----
-
-# Multiple Dataset Versions
-
-To simulate multiple data iterations:
-
-1. Modify or augment `data/iris.csv`.
-2. Run:
-
-```bash
-dvc add data/iris.csv
-git add .
-git commit -m "Dataset Version X"
-dvc push
-```
-
-3. Retrain the model.
-
-Each Git commit references the corresponding DVC-tracked dataset and model versions, enabling complete reproducibility.
-
----
-
-# Restoring Previous Versions
-
-To restore an earlier dataset/model combination:
-
-```bash
-git checkout <commit_hash>
-dvc checkout
-```
-
-To return to the latest version:
-
-```bash
-git checkout week_2
-dvc checkout
-```
-
----
-
-# Files Tracked by DVC
-
-* `data/iris.csv`
-* `models/model.pkl`
-* `metrics/train_metrics.json`
-* `metrics/inference_metrics.json`
-* `metrics/classification_report.txt`
-
----
-
-# Reproducibility
-
-The project is fully reproducible.
-
-A reviewer can:
-
-1. Clone the repository.
-2. Install dependencies.
-3. Configure the DVC remote.
-4. Run:
-
-```bash
-dvc pull
-```
-
-5. Execute:
-
-```bash
-python train.py
-python inference.py
-```
-
-to reproduce the pipeline.
-
----
-
-# Assignment Objectives Covered
-
-* DVC initialized
-* Google Cloud Storage configured as DVC remote
-* Dataset versioned using DVC
-* Model versioned using DVC
-* Multiple dataset iterations created
-* Git + DVC checkout demonstrated
-* Fully reproducible repository
+The next enhancement is to replace the local file-based offline store with a Google BigQuery backend while retaining the same training and inference code, demonstrating Feast's storage abstraction capabilities.

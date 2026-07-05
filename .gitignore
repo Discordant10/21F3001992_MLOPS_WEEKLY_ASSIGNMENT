@@ -38,3 +38,5 @@ data/registry.db
 
 # Temporary files
 *.tmp
+
+feature_repo/data/*.db
