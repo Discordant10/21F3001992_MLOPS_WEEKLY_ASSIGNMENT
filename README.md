@@ -127,39 +127,22 @@ The **species** column is intentionally excluded from the Feature View because i
 
 ```
                 DVC
-
                  │
-
                  ▼
-
         Feast Apply
-
                  │
-
                  ▼
-
        Materialize Features
-
                  │
-
         ┌────────┴────────┐
-
         ▼                 ▼
-
 Offline Store      Online Store
-
         │                 │
-
         ▼                 ▼
-
      Training        Inference
-
         │                 │
-
         └────────┬────────┘
-
                  ▼
-
           Random Forest Model
 ```
 
@@ -193,21 +176,13 @@ The project uses DVC to orchestrate the complete workflow.
 
 ```
 dvc repro
-
 ↓
-
 feast apply
-
 ↓
-
 feast materialize
-
 ↓
-
 python train.py
-
 ↓
-
 python inference.py
 ```
 
