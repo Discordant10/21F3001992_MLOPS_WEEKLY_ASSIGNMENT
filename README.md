@@ -202,7 +202,6 @@ pip install -r requirements.txt
 
 ```bash
 cd feature_repo
-
 feast apply
 ```
 
