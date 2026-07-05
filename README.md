@@ -79,6 +79,30 @@ The project retains **DVC** for reproducibility while introducing **Feast** for 
 
 ---
 
+# Prerequisites
+
+Before running the project, ensure the following are installed:
+- Python 3.11 or later
+- Git
+- DVC
+- Feast 0.45
+- SQLite (used by Feast Local Backend)
+- Virtual Environment (recommended)
+
+Create and activate a virtual environment before installing the project dependencies.
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# Linux
+source .venv/bin/activate
+```
+---
+
+
+
 # Feature Store Design
 
 ## Entity
@@ -249,12 +273,6 @@ models/model.pkl
 metrics/train_metrics.json
 ```
 
-Inference generates:
-
-```
-metrics/inference_metrics.json
-```
-
 ---
 
 # Assignment Tasks Completed
@@ -287,4 +305,4 @@ metrics/inference_metrics.json
 
 # Future Work
 
-The next enhancement is to replace the local file-based offline store with a Google BigQuery backend while retaining the same training and inference code, demonstrating Feast's storage abstraction capabilities.
+Replace the local offline store with a Google BigQuery backend. Since the training and inference code interacts only with Feast APIs, the storage backend can be changed through Feast configuration without modifying the machine learning pipeline.

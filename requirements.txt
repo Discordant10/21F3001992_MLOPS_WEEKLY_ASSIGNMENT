@@ -7,5 +7,3 @@ protobuf==7.35.1
 pyarrow==18.0.0
 scikit-learn==1.9.0
 SQLAlchemy==2.0.51
-google-cloud-bigquery
-google-cloud-storage

@@ -15,13 +15,9 @@ __pycache__/
 .vscode/
 .idea/
 
-# OS files
+# Operating System
 .DS_Store
 Thumbs.db
-
-# Model artifacts
-*.pkl
-*.joblib
 
 # Logs
 *.log
@@ -33,10 +29,10 @@ Thumbs.db
 # DVC cache
 .dvc/cache/
 
-# Feast registry (optional - see note below)
-data/registry.db
+# Feast generated databases
+feature_repo/data/*.db
 
 # Temporary files
 *.tmp
-
-feature_repo/data/*.db
+*.bak
+*.swp
