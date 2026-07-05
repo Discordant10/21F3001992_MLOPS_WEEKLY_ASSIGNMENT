@@ -2,31 +2,62 @@ schema: '2.0'
 stages:
   feast_apply:
     cmd: feast apply
+    deps:
+    - path: feature_store.yaml
+      hash: md5
+      md5: 465a79e9e8a282bbf1ab25bd1ec83a0a
+      size: 203
+    - path: features.py
+      hash: md5
+      md5: a6cb709e26496c3f53e441eb2646a394
+      size: 771
   feast_materialize:
     cmd: feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
-  train:
-    cmd: python train.py
     deps:
-    - path: data/iris_data_adapted_for_feast.parquet
+    - path: ../data/iris_data_adapted_for_feast.parquet
       hash: md5
       md5: 481fc117a64177a8290eec3bd8a31e7b
       size: 6660
+    - path: feature_store.yaml
+      hash: md5
+      md5: 465a79e9e8a282bbf1ab25bd1ec83a0a
+      size: 203
+    - path: features.py
+      hash: md5
+      md5: a6cb709e26496c3f53e441eb2646a394
+      size: 771
+  train:
+    cmd: python train.py
+    deps:
+    - path: data/iris_data_adapted_for_feast.csv
+      hash: md5
+      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
+      size: 4009
     - path: feature_repo/features.py
       hash: md5
-      md5: e497edd25e52f9e554d6bbb74968a6de
-      size: 803
+      md5: a6cb709e26496c3f53e441eb2646a394
+      size: 771
     - path: train.py
       hash: md5
-      md5: 92f6164317267b37d3c4f2ad7b16173c
-      size: 2498
+      md5: 6e9cc126863a74a704f12ac33f87ff8b
+      size: 2367
     outs:
     - path: metrics/train_metrics.json
       hash: md5
-      md5: 2b65e911a5645f906584b9d604608b2f
-      size: 42
+      md5: 76fd9f19ee198f7d9bb640c194300d61
+      size: 39
     - path: models/model.pkl
       hash: md5
-      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
-      size: 64281
+      md5: e1d57d75f24fb12e657deb5afc64c135
+      size: 64313
   inference:
     cmd: python inference.py
+    deps:
+    - path: inference.py
+      hash: md5
+      md5: 87b1f49437f54dee5067db7c306c4a3e
+      size: 1232
+    - path: models/model.pkl
+      hash: md5
+      md5: e1d57d75f24fb12e657deb5afc64c135
+      size: 64313
