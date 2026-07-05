@@ -1,100 +1,132 @@
-import pandas as pd
-import joblib
-import json
 import os
+import json
+import joblib
+import pandas as pd
+
+from feast import FeatureStore
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
-# ------------------------
-# Create folders
-# ------------------------
-
+# Create Output folders
 os.makedirs("models", exist_ok=True)
 os.makedirs("metrics", exist_ok=True)
 
-# ------------------------
-# Load data
-# ------------------------
-
-df = pd.read_csv(
-    "data/iris.csv"
+# Connect to feast
+store = FeatureStore(
+    repo_path="feature_repo"
 )
 
-target = df.columns[-1]
+# Reading only Entity info from csv and building entity df. Features come from feast store
+entity_df = pd.read_csv(
+    "data/iris_data_adapted_for_feast.csv"
+)
+entity_df["event_timestamp"] = pd.to_datetime(
+    entity_df["event_timestamp"],
+    utc=True
+)
 
-X = df.drop(columns=[target])
+entity_df["created_timestamp"] = pd.to_datetime(
+    entity_df["created_timestamp"],
+    utc=True
+)
+entity_rows = entity_df[
+    [
+        "iris_id",
+        "event_timestamp"
+    ]
+]
 
-y = df[target]
+# pulling historical features from feast
+training_df = store.get_historical_features(
 
-# ------------------------
-# Train split
-# ------------------------
+    entity_df=entity_rows,
+
+    features=[
+        "iris_features:sepal_length",
+        "iris_features:sepal_width",
+        "iris_features:petal_length",
+        "iris_features:petal_width"
+    ]
+
+).to_df()
+
+# merge lables. The four feature columns came from Feast. The label came from the CSV.
+training_df = training_df.merge(
+    entity_df[
+        [
+            "iris_id",
+            "event_timestamp",
+            "species"
+        ]
+    ],
+    on=[
+        "iris_id",
+        "event_timestamp"
+    ]
+)
+print(training_df.head())
+
+
+# Create train test splits
+X = training_df[
+    [
+        "sepal_length",
+        "sepal_width",
+        "petal_length",
+        "petal_width",
+    ]
+]
+y = training_df["species"]
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
     test_size=0.2,
     random_state=42,
-    stratify=y
+    stratify=y,
 )
 
-# ------------------------
-# Train model
-# ------------------------
-
+# Train
 model = RandomForestClassifier(
     n_estimators=100,
-    random_state=42
+    random_state=42,
 )
 
 model.fit(
     X_train,
-    y_train
+    y_train,
 )
 
-# ------------------------
-# Evaluate
-# ------------------------
-
-preds = model.predict(
-    X_test
-)
-
-acc = accuracy_score(
+preds = model.predict(X_test)
+accuracy = accuracy_score(
     y_test,
-    preds
+    preds,
 )
 
-# ------------------------
-# Save model
-# ------------------------
-
+# save model and metrics
 joblib.dump(
     model,
-    "models/model.pkl"
+    "models/model.pkl",
 )
 
-# ------------------------
-# Save metrics
-# ------------------------
-
 metrics = {
-    "accuracy": float(acc),
-    "rows": len(df)
+    "accuracy": float(accuracy),
+    "rows": len(training_df),
 }
 
 with open(
     "metrics/train_metrics.json",
-    "w"
+    "w",
 ) as f:
 
     json.dump(
         metrics,
         f,
-        indent=4
+        indent=4,
     )
 
+print()
 print("Training Complete")
-print("Accuracy:", acc)
+print("Accuracy:", accuracy)

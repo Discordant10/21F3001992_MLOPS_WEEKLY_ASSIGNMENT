@@ -1,105 +1,46 @@
-import pandas as pd
 import joblib
-import json
-import os
+from feast import FeatureStore
+from pathlib import Path
 
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report
+# Locate feature repository
+PROJECT_ROOT = Path(__file__).resolve().parent
+FEATURE_REPO = PROJECT_ROOT / "feature_repo"
+store = FeatureStore(
+    repo_path=str(FEATURE_REPO)
 )
 
-from sklearn.model_selection import train_test_split
+#Load model
+MODEL_PATH = PROJECT_ROOT / "models" / "model.pkl"
+model = joblib.load(MODEL_PATH)
 
-# ------------------------
-# Create folders
-# ------------------------
+#Choose Dataset ID (hardcoded for now)
+iris_id = 1001
 
-os.makedirs(
-    "metrics",
-    exist_ok=True
-)
+#Retrieve features
+features = store.get_online_features(
+    features=[
+        "iris_features:sepal_length",
+        "iris_features:sepal_width",
+        "iris_features:petal_length",
+        "iris_features:petal_width",
+    ],
+    entity_rows=[
+        {"iris_id": iris_id}
+    ],
+).to_dict()
+print(features)
 
-# ------------------------
-# Load data
-# ------------------------
+#Convert to 2D array which the model expects
+X = [[
+    features["sepal_length"][0],
+    features["sepal_width"][0],
+    features["petal_length"][0],
+    features["petal_width"][0],
+]]
 
-df = pd.read_csv(
-    "data/iris.csv"
-)
+#Predict
+prediction = model.predict(X)
+print()
+print("Prediction:")
+print(prediction[0])
 
-target = df.columns[-1]
-
-X = df.drop(
-    columns=[target]
-)
-
-y = df[target]
-
-# ------------------------
-# Same split as training
-# ------------------------
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
-)
-
-# ------------------------
-# Load model
-# ------------------------
-
-model = joblib.load(
-    "models/model.pkl"
-)
-
-# ------------------------
-# Predict
-# ------------------------
-
-preds = model.predict(
-    X_test
-)
-
-acc = accuracy_score(
-    y_test,
-    preds
-)
-
-report = classification_report(
-    y_test,
-    preds
-)
-
-# ------------------------
-# Save metrics
-# ------------------------
-
-metrics = {
-    "accuracy": float(acc)
-}
-
-with open(
-    "metrics/inference_metrics.json",
-    "w"
-) as f:
-
-    json.dump(
-        metrics,
-        f,
-        indent=4
-    )
-
-with open(
-    "metrics/classification_report.txt",
-    "w"
-) as f:
-
-    f.write(
-        report
-    )
-
-print("Inference Complete")
-print("Accuracy:", acc)
