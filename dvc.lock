@@ -3,8 +3,30 @@ stages:
   feast_apply:
     cmd: feast apply
   feast_materialize:
-    cmd: feast materialize-incremental 2100-01-01T00:00:00
+    cmd: feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
   train:
     cmd: python train.py
+    deps:
+    - path: data/iris_data_adapted_for_feast.parquet
+      hash: md5
+      md5: 481fc117a64177a8290eec3bd8a31e7b
+      size: 6660
+    - path: feature_repo/features.py
+      hash: md5
+      md5: e497edd25e52f9e554d6bbb74968a6de
+      size: 803
+    - path: train.py
+      hash: md5
+      md5: 92f6164317267b37d3c4f2ad7b16173c
+      size: 2498
+    outs:
+    - path: metrics/train_metrics.json
+      hash: md5
+      md5: 2b65e911a5645f906584b9d604608b2f
+      size: 42
+    - path: models/model.pkl
+      hash: md5
+      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
+      size: 64281
   inference:
     cmd: python inference.py

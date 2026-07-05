@@ -3,17 +3,28 @@ stages:
   feast_apply:
     cmd: feast apply
     wdir: feature_repo
+    deps:
+      - feature_store.yaml
+      - features.py
+    outs:
+      - data/registry.db
 
   feast_materialize:
     cmd: feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
     wdir: feature_repo
+    deps:
+      - feature_store.yaml
+      - features.py
+      - ../data/iris_data_adapted_for_feast.parquet
+    outs:
+      - data/online_store.db
 
   train:
     cmd: python train.py
     deps:
       - train.py
       - feature_repo/features.py
-      - data/iris_data_adapted_for_feast.parquet
+      - data/iris_data_adapted_for_feast.csv
     outs:
       - models/model.pkl
     metrics:
@@ -21,3 +32,6 @@ stages:
 
   inference:
     cmd: python inference.py
+    deps:
+      - inference.py
+      - models/model.pkl
