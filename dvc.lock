@@ -39,25 +39,52 @@ stages:
       size: 771
     - path: train.py
       hash: md5
-      md5: 6e9cc126863a74a704f12ac33f87ff8b
-      size: 2367
+      md5: 6ebcedbbfc85310ef2a6f3c548781086
+      size: 3420
     outs:
     - path: metrics/train_metrics.json
       hash: md5
-      md5: 2b65e911a5645f906584b9d604608b2f
-      size: 42
+      md5: c949a5dd0f26fb55babc67bfcd7d352f
+      size: 232
     - path: models/model.pkl
       hash: md5
-      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
+      md5: b96729cdd7ab5c728e06e73263dbc065
       size: 64281
   inference:
     cmd: python inference.py
     deps:
+    - path: data/iris_data_adapted_for_feast.csv
+      hash: md5
+      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
+      size: 4009
     - path: inference.py
       hash: md5
       md5: 87b1f49437f54dee5067db7c306c4a3e
       size: 1232
     - path: models/model.pkl
       hash: md5
-      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
+      md5: b96729cdd7ab5c728e06e73263dbc065
       size: 64281
+  test:
+    cmd: pytest tests -v --tb=short
+    deps:
+    - path: data/iris_data_adapted_for_feast.csv
+      hash: md5
+      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
+      size: 4009
+    - path: metrics/train_metrics.json
+      hash: md5
+      md5: c949a5dd0f26fb55babc67bfcd7d352f
+      size: 232
+    - path: models/model.pkl
+      hash: md5
+      md5: b96729cdd7ab5c728e06e73263dbc065
+      size: 64281
+    - path: tests/test_data_validation.py
+      hash: md5
+      md5: d00cf3759cb8ad955bbbcc9228088748
+      size: 3321
+    - path: tests/test_model.py
+      hash: md5
+      md5: ffc384d6a6ad401e5c6dc5886bb05d6a
+      size: 4399
