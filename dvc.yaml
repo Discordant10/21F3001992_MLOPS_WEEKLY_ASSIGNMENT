@@ -31,3 +31,13 @@ stages:
     deps:
       - inference.py
       - models/model.pkl
+      - data/iris_data_adapted_for_feast.csv
+
+  test:
+    cmd: pytest tests -v --tb=short
+    deps:
+      - tests/test_data_validation.py
+      - tests/test_model.py
+      - models/model.pkl
+      - metrics/train_metrics.json
+      - data/iris_data_adapted_for_feast.csv

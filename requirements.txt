@@ -1,4 +1,5 @@
 dvc==3.67.1
+dvc-gs==3.0.1
 feast==0.45.0
 joblib==1.5.3
 numpy==1.26.4
@@ -7,3 +8,10 @@ protobuf==7.35.1
 pyarrow==18.0.0
 scikit-learn==1.9.0
 SQLAlchemy==2.0.51
+pytest
+pytest-cov
+pyyaml
+matplotlib
+google-cloud-storage
+google-cloud-aiplatform
+google-auth

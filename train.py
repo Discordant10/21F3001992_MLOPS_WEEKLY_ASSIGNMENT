@@ -1,131 +1,173 @@
-import os
 import json
+import os
 import joblib
 import pandas as pd
 
-from feast import FeatureStore
-
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 
-# Create Output folders
-os.makedirs("models", exist_ok=True)
-os.makedirs("metrics", exist_ok=True)
 
-# Connect to feast
-store = FeatureStore(
-    repo_path="feature_repo"
-)
+# --------------------------------------------------------------------
+# Configuration
+# --------------------------------------------------------------------
 
-# Reading only Entity info from csv and building entity df. Features come from feast store
-entity_df = pd.read_csv(
-    "data/iris_data_adapted_for_feast.csv"
-)
-entity_df["event_timestamp"] = pd.to_datetime(
-    entity_df["event_timestamp"],
-    utc=True
-)
+DATA_PATH = "data/iris_data_adapted_for_feast.csv"
+MODEL_DIR = "models"
+MODEL_PATH = os.path.join(MODEL_DIR, "model.pkl")
 
-entity_df["created_timestamp"] = pd.to_datetime(
-    entity_df["created_timestamp"],
-    utc=True
-)
-entity_rows = entity_df[
-    [
-        "iris_id",
-        "event_timestamp"
-    ]
-]
+METRICS_DIR = "metrics"
+METRICS_PATH = os.path.join(METRICS_DIR, "train_metrics.json")
 
-# pulling historical features from feast
-training_df = store.get_historical_features(
 
-    entity_df=entity_rows,
+# --------------------------------------------------------------------
+# Helper Functions
+# --------------------------------------------------------------------
 
-    features=[
-        "iris_features:sepal_length",
-        "iris_features:sepal_width",
-        "iris_features:petal_length",
-        "iris_features:petal_width"
-    ]
+def load_dataset(path):
+    """Load dataset."""
 
-).to_df()
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Dataset not found: {path}")
 
-# merge lables. The four feature columns came from Feast. The label came from the CSV.
-training_df = training_df.merge(
-    entity_df[
-        [
-            "iris_id",
-            "event_timestamp",
-            "species"
-        ]
-    ],
-    on=[
-        "iris_id",
-        "event_timestamp"
-    ]
-)
-print("Retrieved historical features from Feast.")
+    df = pd.read_csv(path)
 
-# Create train test splits
-X = training_df[
-    [
+    return df
+
+
+def preprocess(df):
+    """Prepare features and labels."""
+
+    feature_columns = [
         "sepal_length",
         "sepal_width",
         "petal_length",
         "petal_width",
     ]
-]
-y = training_df["species"]
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y,
-)
+    target_column = "species"
 
-# Train
-model = RandomForestClassifier(
-    n_estimators=100,
-    random_state=42,
-)
+    X = df[feature_columns]
+    y = df[target_column]
 
-model.fit(
-    X_train,
-    y_train,
-)
+    return X, y
 
-preds = model.predict(X_test)
-accuracy = accuracy_score(
-    y_test,
-    preds,
-)
 
-# save model and metrics
-joblib.dump(
-    model,
-    "models/model.pkl",
-)
+def train_model(X_train, y_train):
+    """Train Random Forest."""
 
-metrics = {
-    "accuracy": float(accuracy),
-    "rows": len(training_df),
-}
-
-with open(
-    "metrics/train_metrics.json",
-    "w",
-) as f:
-
-    json.dump(
-        metrics,
-        f,
-        indent=4,
+    model = RandomForestClassifier(
+        n_estimators=100,
+        random_state=42,
     )
 
-print()
-print("Training Complete")
-print("Accuracy:", accuracy)
+    model.fit(X_train, y_train)
+
+    return model
+
+
+def evaluate(model, X_test, y_test):
+    """Evaluate model."""
+
+    predictions = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, predictions)
+
+    precision = precision_score(
+        y_test,
+        predictions,
+        average="weighted",
+    )
+
+    recall = recall_score(
+        y_test,
+        predictions,
+        average="weighted",
+    )
+
+    f1 = f1_score(
+        y_test,
+        predictions,
+        average="weighted",
+    )
+
+    cm = confusion_matrix(y_test, predictions)
+
+    metrics = {
+        "accuracy": float(accuracy),
+        "precision": float(precision),
+        "recall": float(recall),
+        "f1_score": float(f1),
+        "confusion_matrix": cm.tolist(),
+    }
+
+    return metrics
+
+
+def save_model(model):
+    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    joblib.dump(model, MODEL_PATH)
+
+    print(f"Model saved to {MODEL_PATH}")
+
+
+def save_metrics(metrics):
+    os.makedirs(METRICS_DIR, exist_ok=True)
+
+    with open(METRICS_PATH, "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    print(f"Metrics saved to {METRICS_PATH}")
+
+
+# --------------------------------------------------------------------
+# Main
+# --------------------------------------------------------------------
+
+def main():
+
+    print("Loading dataset...")
+
+    df = load_dataset(DATA_PATH)
+
+    print(df.head())
+
+    X, y = preprocess(df)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y,
+    )
+
+    print("Training model...")
+
+    model = train_model(X_train, y_train)
+
+    print("Evaluating model...")
+
+    metrics = evaluate(model, X_test, y_test)
+
+    print("\nEvaluation Metrics")
+
+    for key, value in metrics.items():
+        print(f"{key}: {value}")
+
+    save_model(model)
+
+    save_metrics(metrics)
+
+    print("\nTraining completed successfully.")
+
+
+if __name__ == "__main__":
+    main()

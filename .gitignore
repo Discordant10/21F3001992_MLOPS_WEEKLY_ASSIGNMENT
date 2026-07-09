@@ -36,3 +36,12 @@ feature_repo/data/*.db
 *.tmp
 *.bak
 *.swp
+
+# Reports
+reports/*
+
+# Others
+dist/
+build/
+*.egg-info/
+.pytest_cache/

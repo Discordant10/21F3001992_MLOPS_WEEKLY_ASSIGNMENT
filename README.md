@@ -1,65 +1,57 @@
-# MLOps Weekly Assignment – Week 3
+# IRIS Classification Pipeline with CI/CD
 
-## Integrating Feast Feature Store into the IRIS Pipeline
+## IIT Madras BS Degree Programme
 
-### Student Details
+**Course:** MLOps Weekly Assignment - Week 4
 
-* **Roll Number:** 21F3001992
-* **Course:** MLOps
-* **Assignment:** Week 3 – Feast Feature Store Integration
+**Roll Number:** 21F3001992
 
 ---
 
 # Project Overview
 
-This project extends the Week 2 MLOps pipeline by integrating the **Feast Feature Store** into the IRIS machine learning workflow.
+This project implements a complete Machine Learning Operations (MLOps) pipeline for the Iris classification dataset.
 
-The objective is to eliminate training-serving skew by ensuring that both model training and inference retrieve engineered features from a single feature store.
+The pipeline demonstrates:
 
-The project retains **DVC** for reproducibility while introducing **Feast** for feature management.
-
----
-
-# Objectives
-
-* Build a local Feast Feature Repository.
-* Define Entity, Data Source and Feature View.
-* Register feature definitions using Feast.
-* Materialize features into the online store.
-* Train the model using Feast Offline Store.
-* Perform inference using Feast Online Store.
-* Maintain reproducibility using DVC.
+- Model Training
+- Feature Management using Feast
+- Data & Model Versioning using DVC
+- Google Cloud Storage Remote
+- Continuous Integration using GitHub Actions
+- Automated Testing using PyTest
+- Continuous Machine Learning (CML) Reports
 
 ---
 
-# Project Structure
+# Repository Structure
 
 ```
-21F3001992_MLOPS_WEEKLY_ASSIGNMENT/
-
+.
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
 ├── data/
-│   ├── iris_data_adapted_for_feast.parquet
 │   └── iris_data_adapted_for_feast.csv
 │
 ├── feature_repo/
-│   ├── feature_store.yaml
-│   ├── features.py
-│   └── data/
-│       ├── registry.db
-│       └── online_store.db
-│
-├── models/
-│   └── model.pkl
 │
 ├── metrics/
-│   ├── train_metrics.json
-│   └── inference_metrics.json
+│   └── metrics.json
+│
+├── models/
+│   └── iris_model.pkl
+│
+├── reports/
+│
+├── tests/
+│   ├── test_data_validation.py
+│   └── test_model.py
 │
 ├── train.py
 ├── inference.py
 ├── dvc.yaml
-├── dvc.lock
 ├── requirements.txt
 └── README.md
 ```
@@ -68,186 +60,161 @@ The project retains **DVC** for reproducibility while introducing **Feast** for 
 
 # Technologies Used
 
-* Python 3.11
-* Feast 0.45
-* DVC
-* Scikit-Learn
-* Pandas
-* Joblib
-* SQLite
-* PyArrow
-
----
-
-# Prerequisites
-
-Before running the project, ensure the following are installed:
-- Python 3.11 or later
-- Git
+- Python 3.11
+- Scikit-Learn
+- Pandas
+- NumPy
+- Feast
 - DVC
-- Feast 0.45
-- SQLite (used by Feast Local Backend)
-- Virtual Environment (recommended)
-
-Create and activate a virtual environment before installing the project dependencies.
-```bash
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# Linux
-source .venv/bin/activate
-```
----
-
-
-
-# Feature Store Design
-
-## Entity
-
-```
-iris_id
-```
-
-Each Iris plant is uniquely identified using `iris_id`.
+- Google Cloud Storage
+- GitHub Actions
+- PyTest
+- CML
 
 ---
 
-## Data Source
+# Project Workflow
 
 ```
-iris_data_adapted_for_feast.parquet
-```
+Developer
 
-The dataset contains:
+↓
 
-* iris_id
-* event_timestamp
-* created_timestamp
-* sepal_length
-* sepal_width
-* petal_length
-* petal_width
-* species
+Push Code
 
----
+↓
 
-## Feature View
+GitHub Actions
 
-The feature view exposes the following features:
+↓
 
-* sepal_length
-* sepal_width
-* petal_length
-* petal_width
+Install Dependencies
 
-The **species** column is intentionally excluded from the Feature View because it is the prediction target (label) rather than an input feature.
+↓
 
----
+Authenticate to Google Cloud
 
-# Pipeline Architecture
+↓
 
-```
-                DVC
-                 │
-                 ▼
-        Feast Apply
-                 │
-                 ▼
-       Materialize Features
-                 │
-        ┌────────┴────────┐
-        ▼                 ▼
-Offline Store      Online Store
-        │                 │
-        ▼                 ▼
-     Training        Inference
-        │                 │
-        └────────┬────────┘
-                 ▼
-          Random Forest Model
+DVC Pull
+
+↓
+
+Load Dataset + Model
+
+↓
+
+Run Unit Tests
+
+↓
+
+Generate Metrics
+
+↓
+
+Generate Report
+
+↓
+
+Publish PR Comment using CML
 ```
 
 ---
 
-# Training Workflow
+# Dataset
 
-1. Read entity IDs and timestamps.
-2. Retrieve historical features using Feast Offline Store.
-3. Merge retrieved features with labels.
-4. Split into training and testing datasets.
-5. Train Random Forest classifier.
-6. Save trained model.
-7. Save training metrics.
+Dataset:
 
----
+```
+IRIS Dataset
+```
 
-# Inference Workflow
+Features
 
-1. Accept an Iris Entity ID.
-2. Retrieve latest feature values from Feast Online Store.
-3. Construct inference feature vector.
-4. Load trained model.
-5. Predict Iris species.
+- sepal_length
+- sepal_width
+- petal_length
+- petal_width
+
+Target
+
+```
+species
+```
+
+Classes
+
+- setosa
+- versicolor
+- virginica
 
 ---
 
 # DVC Pipeline
 
-The project uses DVC to orchestrate the complete workflow.
-
-```
-dvc repro
-↓
-feast apply
-↓
-feast materialize
-↓
-python train.py
-↓
-python inference.py
-```
-
----
-
-# Running the Project
-
-## 1. Install dependencies
+Initialize DVC
 
 ```bash
-pip install -r requirements.txt
+dvc init
+```
+
+Pull versioned files
+
+```bash
+dvc pull
+```
+
+Run pipeline
+
+```bash
+dvc repro
+```
+
+Push changes
+
+```bash
+dvc push
 ```
 
 ---
 
-## 2. Apply Feast definitions
+# Feast
+
+Apply feature definitions
 
 ```bash
 cd feature_repo
+
 feast apply
 ```
 
----
-
-## 3. Materialize features
+Materialize features
 
 ```bash
-feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
+feast materialize-incremental
 ```
 
 ---
 
-## 4. Train the model
+# Train Model
+
+Run
 
 ```bash
 python train.py
 ```
 
+Outputs
+
+```
+models/iris_model.pkl
+
+metrics/metrics.json
+```
+
 ---
 
-## 5. Perform inference
+# Run Inference
 
 ```bash
 python inference.py
@@ -255,54 +222,164 @@ python inference.py
 
 ---
 
-## 6. Execute the complete pipeline
+# Unit Tests
+
+Run
 
 ```bash
-dvc repro
+pytest tests -v
+```
+
+Tests Included
+
+## Data Validation
+
+- Dataset exists
+- Correct schema
+- No missing values
+- Numeric feature types
+- Valid feature ranges
+- Duplicate check
+
+## Model Evaluation
+
+- Model loads successfully
+- Predictions generated
+- Accuracy threshold
+- Precision threshold
+- Recall threshold
+- F1 threshold
+
+---
+
+# GitHub Actions
+
+Workflow file
+
+```
+.github/workflows/ci.yml
+```
+
+Runs automatically on
+
+- Push
+- Pull Request
+
+Workflow Steps
+
+1. Checkout Repository
+2. Install Python
+3. Install Dependencies
+4. Authenticate Google Cloud
+5. DVC Pull
+6. Train Model
+7. Execute Tests
+8. Generate Report
+9. Publish CML Comment
+
+---
+
+# Google Cloud Configuration
+
+Create a Service Account with
+
+- Storage Object Viewer
+- Storage Object Admin
+
+Create JSON Key
+
+Store JSON as GitHub Secret
+
+```
+GCP_SA_KEY
 ```
 
 ---
 
-# Outputs
+# GitHub Secrets
 
-Training generates:
+Repository
+
+Settings
+
+Secrets and Variables
+
+Actions
+
+Required Secret
 
 ```
-models/model.pkl
-
-metrics/train_metrics.json
+GCP_SA_KEY
 ```
 
 ---
 
-# Assignment Tasks Completed
+# Continuous Machine Learning (CML)
 
-| Task                        | Status |
-| --------------------------- | ------ |
-| Initialize Feast Repository | ✅      |
-| Define Entity               | ✅      |
-| Define Data Source          | ✅      |
-| Define Feature View         | ✅      |
-| Apply Feature Definitions   | ✅      |
-| Materialize Features        | ✅      |
-| Offline Feature Retrieval   | ✅      |
-| Model Training Using Feast  | ✅      |
-| Online Feature Retrieval    | ✅      |
-| Real-time Inference         | ✅      |
-| DVC Integration             | ✅      |
+After every Pull Request
+
+GitHub Actions
+
+↓
+
+Runs tests
+
+↓
+
+Creates report
+
+↓
+
+Posts report directly on Pull Request
+
+Example
+
+| Metric | Value |
+|---------|------:|
+| Accuracy | 0.9667 |
+| Precision | 0.9673 |
+| Recall | 0.9667 |
+| F1 Score | 0.9666 |
 
 ---
 
-# Notes
+# Expected Accuracy
 
-* Feast is used as the single source of truth for feature retrieval.
-* DVC is retained for pipeline reproducibility.
-* Training uses Feast Offline Store (`get_historical_features()`).
-* Inference uses Feast Online Store (`get_online_features()`).
-* The `species` column is used only as the prediction label and is not included in the Feature View to avoid target leakage.
+The trained Random Forest classifier consistently achieves
+
+```
+Accuracy > 96%
+```
 
 ---
 
-# Future Work
+# Week-wise Progress
 
-Replace the local offline store with a Google BigQuery backend. Since the training and inference code interacts only with Feast APIs, the storage backend can be changed through Feast configuration without modifying the machine learning pipeline.
+## Week 1
+
+- Vertex AI Pipeline
+- Model Training
+
+## Week 2
+
+- DVC
+- Google Cloud Storage
+
+## Week 3
+
+- Feast Feature Store
+
+## Week 4
+
+- GitHub Actions
+- CI Pipeline
+- PyTest
+- CML Reports
+
+---
+
+# Author
+
+**Name:** Parag Seth
+
+**Roll Number:** 21F3001992
