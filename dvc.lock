@@ -44,12 +44,12 @@ stages:
     outs:
     - path: metrics/train_metrics.json
       hash: md5
-      md5: 76fd9f19ee198f7d9bb640c194300d61
-      size: 39
+      md5: 2b65e911a5645f906584b9d604608b2f
+      size: 42
     - path: models/model.pkl
       hash: md5
-      md5: e1d57d75f24fb12e657deb5afc64c135
-      size: 64313
+      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
+      size: 64281
   inference:
     cmd: python inference.py
     deps:
@@ -59,5 +59,5 @@ stages:
       size: 1232
     - path: models/model.pkl
       hash: md5
-      md5: e1d57d75f24fb12e657deb5afc64c135
-      size: 64313
+      md5: 7ab9ce432312e2fb02fa2ec5e30dd893
+      size: 64281
