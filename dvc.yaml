@@ -21,6 +21,12 @@ stages:
       - train.py
       - feature_repo/features.py
       - data/iris_data_adapted_for_feast.csv
+    params:
+      - model.n_estimators
+      - model.max_depth
+      - mlflow.tracking_uri
+      - mlflow.experiment_name
+      - mlflow.registered_model_name
     outs:
       - models/model.pkl
     metrics:

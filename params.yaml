@@ -1,0 +1,8 @@
+model:
+  n_estimators: 50
+  max_depth: 5
+
+mlflow:
+  tracking_uri: "http://localhost:5000"
+  experiment_name: "iris-random-forest"
+  registered_model_name: "IrisClassifier"

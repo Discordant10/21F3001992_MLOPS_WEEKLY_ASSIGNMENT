@@ -31,25 +31,32 @@ stages:
     deps:
     - path: data/iris_data_adapted_for_feast.csv
       hash: md5
-      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
-      size: 4009
+      md5: 1adb5bd528bf82db0eec2e21f6247410
+      size: 10543
     - path: feature_repo/features.py
       hash: md5
       md5: a6cb709e26496c3f53e441eb2646a394
       size: 771
     - path: train.py
       hash: md5
-      md5: 6ebcedbbfc85310ef2a6f3c548781086
-      size: 3420
+      md5: 155aa6aa8ff3d82d12e6f130653c6cdd
+      size: 5439
+    params:
+      params.yaml:
+        mlflow.experiment_name: iris-random-forest
+        mlflow.registered_model_name: IrisClassifier
+        mlflow.tracking_uri: http://localhost:5000
+        model.max_depth: 5
+        model.n_estimators: 50
     outs:
     - path: metrics/train_metrics.json
       hash: md5
-      md5: c949a5dd0f26fb55babc67bfcd7d352f
-      size: 232
+      md5: f8e435a4735f3fe5c69f7baade70a566
+      size: 586
     - path: models/model.pkl
       hash: md5
-      md5: b96729cdd7ab5c728e06e73263dbc065
-      size: 64281
+      md5: 92f3ea335891208269c09de593f731c3
+      size: 82657
   inference:
     cmd: python inference.py
     deps:
