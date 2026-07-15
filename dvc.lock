@@ -16,8 +16,8 @@ stages:
     deps:
     - path: ../data/iris_data_adapted_for_feast.parquet
       hash: md5
-      md5: 481fc117a64177a8290eec3bd8a31e7b
-      size: 6660
+      md5: ae6368333f76277cdf2daad30cef5b59
+      size: 9521
     - path: feature_store.yaml
       hash: md5
       md5: 465a79e9e8a282bbf1ab25bd1ec83a0a
@@ -58,16 +58,16 @@ stages:
     deps:
     - path: data/iris_data_adapted_for_feast.csv
       hash: md5
-      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
-      size: 4009
+      md5: 1adb5bd528bf82db0eec2e21f6247410
+      size: 10543
     - path: inference.py
       hash: md5
-      md5: 87b1f49437f54dee5067db7c306c4a3e
-      size: 1232
-    - path: models/model.pkl
+      md5: 49a82d381b9a6cab38d0787bb2afb27a
+      size: 1334
+    - path: mlflow_utils.py
       hash: md5
-      md5: b96729cdd7ab5c728e06e73263dbc065
-      size: 64281
+      md5: eedf3a59246002ec3dc49dedf4b64e9d
+      size: 543
   test:
     cmd: pytest tests -v --tb=short
     deps:

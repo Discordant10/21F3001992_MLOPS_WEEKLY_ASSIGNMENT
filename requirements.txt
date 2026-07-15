@@ -22,3 +22,5 @@ matplotlib
 google-cloud-storage
 google-cloud-aiplatform
 google-auth
+
+grpcio-status==1.62.3
