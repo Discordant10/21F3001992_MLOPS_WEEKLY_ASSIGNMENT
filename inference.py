@@ -1,55 +1,59 @@
-import joblib
-from feast import FeatureStore
+import argparse
 from pathlib import Path
+
 import pandas as pd
 
-# Locate feature repository
-PROJECT_ROOT = Path(__file__).resolve().parent
-FEATURE_REPO = PROJECT_ROOT / "feature_repo"
-store = FeatureStore(
-    repo_path=str(FEATURE_REPO)
-)
+from mlflow_utils import load_registered_model
+from feast import FeatureStore
 
-#Load model
-MODEL_PATH = PROJECT_ROOT / "models" / "model.pkl"
-model = joblib.load(MODEL_PATH)
+def main():
+    parser = argparse.ArgumentParser()
 
-#Choose Dataset ID from arguments
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--id",
-    type=int,
-    default=1001,
-)
-args = parser.parse_args()
-iris_id = args.id
+    parser.add_argument(
+        "--id",
+        type=int,
+        default=1,
+    )
 
-#Retrieve features
-features = store.get_online_features(
-    features=[
-        "iris_features:sepal_length",
-        "iris_features:sepal_width",
-        "iris_features:petal_length",
-        "iris_features:petal_width",
-    ],
-    entity_rows=[
-        {"iris_id": iris_id}
-    ],
-).to_dict()
-print(features)
+    args = parser.parse_args()
+    iris_id = args.id
+    model = load_registered_model()
+    print("Model loaded")
 
-#Convert to 2D array which the model expects
-X = pd.DataFrame({
-    "sepal_length": [features["sepal_length"][0]],
-    "sepal_width": [features["sepal_width"][0]],
-    "petal_length": [features["petal_length"][0]],
-    "petal_width": [features["petal_width"][0]],
-})
+    project_root = Path(__file__).resolve().parent
+    feature_repo = project_root / "feature_repo"
+    store = FeatureStore(
+        repo_path=str(feature_repo)
+    )
+    features = store.get_online_features(
+        features=[
+            "iris_features:sepal_length",
+            "iris_features:sepal_width",
+            "iris_features:petal_length",
+            "iris_features:petal_width",
+        ],
+        entity_rows=[
+            {"iris_id": iris_id}
+        ],
+    ).to_dict()
 
-#Predict
-prediction = model.predict(X)
-print()
-print("Prediction:")
-print(prediction[0])
+    print()
+    print("Retrieved Features:")
+    print(features)
 
+    X = pd.DataFrame({
+        "sepal_length": [features["sepal_length"][0]],
+        "sepal_width": [features["sepal_width"][0]],
+        "petal_length": [features["petal_length"][0]],
+        "petal_width": [features["petal_width"][0]],
+    })
+
+    prediction = model.predict(X)
+
+    print()
+    print("Prediction:")
+    print(prediction[0])
+
+
+if __name__ == "__main__":
+    main()

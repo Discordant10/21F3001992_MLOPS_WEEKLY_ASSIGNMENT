@@ -27,8 +27,6 @@ stages:
       - mlflow.tracking_uri
       - mlflow.experiment_name
       - mlflow.registered_model_name
-    outs:
-      - models/model.pkl
     metrics:
       - metrics/train_metrics.json
 
@@ -36,7 +34,7 @@ stages:
     cmd: python inference.py
     deps:
       - inference.py
-      - models/model.pkl
+      - mlflow_utils.py
       - data/iris_data_adapted_for_feast.csv
 
   test:
@@ -44,6 +42,6 @@ stages:
     deps:
       - tests/test_data_validation.py
       - tests/test_model.py
-      - models/model.pkl
+      - mlflow_utils.py
       - metrics/train_metrics.json
       - data/iris_data_adapted_for_feast.csv

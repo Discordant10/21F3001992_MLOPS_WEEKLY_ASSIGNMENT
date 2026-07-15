@@ -39,24 +39,20 @@ stages:
       size: 771
     - path: train.py
       hash: md5
-      md5: 155aa6aa8ff3d82d12e6f130653c6cdd
-      size: 5439
+      md5: 5ae70400ac1c6c58718674a3bda889eb
+      size: 6648
     params:
       params.yaml:
         mlflow.experiment_name: iris-random-forest
         mlflow.registered_model_name: IrisClassifier
-        mlflow.tracking_uri: http://localhost:5000
-        model.max_depth: 5
-        model.n_estimators: 50
+        mlflow.tracking_uri: http://34.46.103.193:5000
+        model.max_depth: 3
+        model.n_estimators: 100
     outs:
     - path: metrics/train_metrics.json
       hash: md5
-      md5: f8e435a4735f3fe5c69f7baade70a566
-      size: 586
-    - path: models/model.pkl
-      hash: md5
-      md5: 92f3ea335891208269c09de593f731c3
-      size: 82657
+      md5: b5cb60fbbffdf2f2f1b62a3a04aa2166
+      size: 677
   inference:
     cmd: python inference.py
     deps:
@@ -77,21 +73,21 @@ stages:
     deps:
     - path: data/iris_data_adapted_for_feast.csv
       hash: md5
-      md5: 1e4e207ac9cdbd0e61f71558d5db45b9
-      size: 4009
+      md5: 1adb5bd528bf82db0eec2e21f6247410
+      size: 10543
     - path: metrics/train_metrics.json
       hash: md5
-      md5: c949a5dd0f26fb55babc67bfcd7d352f
-      size: 232
-    - path: models/model.pkl
+      md5: b5cb60fbbffdf2f2f1b62a3a04aa2166
+      size: 677
+    - path: mlflow_utils.py
       hash: md5
-      md5: b96729cdd7ab5c728e06e73263dbc065
-      size: 64281
+      md5: eedf3a59246002ec3dc49dedf4b64e9d
+      size: 543
     - path: tests/test_data_validation.py
       hash: md5
-      md5: cf156b3eb98c421210da11731460ca7b
-      size: 3286
+      md5: b5c0b6b6e996ba85ed3e89122700e8c1
+      size: 3290
     - path: tests/test_model.py
       hash: md5
-      md5: ffc384d6a6ad401e5c6dc5886bb05d6a
-      size: 4399
+      md5: 00becbe44ffca791532272595cab4b28
+      size: 4023

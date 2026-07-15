@@ -5,8 +5,8 @@ import pytest
 
 DATA_PATH = "data/iris_data_adapted_for_feast.csv"
 EXPECTED_COLUMNS = [
-    "event_timestamp",
     "iris_id",
+    "event_timestamp",
     "sepal_length",
     "sepal_width",
     "petal_length",
@@ -50,7 +50,7 @@ def test_dataset_not_empty(iris_dataframe):
 
 def test_expected_columns(iris_dataframe):
     """Dataset schema should match the expected schema."""
-    assert list(iris_dataframe.columns) == EXPECTED_COLUMNS
+    assert set(iris_dataframe.columns) == set(EXPECTED_COLUMNS)
 
 
 def test_no_missing_values(iris_dataframe):

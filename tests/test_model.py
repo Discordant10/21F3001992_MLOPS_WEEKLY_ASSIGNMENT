@@ -1,35 +1,41 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.append(str(PROJECT_ROOT))
+
 import os
 import json
-import joblib
 import pandas as pd
 
 from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
+accuracy_score,
+precision_score,
+recall_score,
+f1_score,
 )
+
 from sklearn.model_selection import train_test_split
 
-MODEL_PATH = "models/model.pkl"
+from mlflow_utils import load_registered_model
+
 DATA_PATH = "data/iris_data_adapted_for_feast.csv"
 METRICS_PATH = "metrics/train_metrics.json"
 
 FEATURE_COLUMNS = [
-    "sepal_length",
-    "sepal_width",
-    "petal_length",
-    "petal_width",
+"sepal_length",
+"sepal_width",
+"petal_length",
+"petal_width",
 ]
 
 TARGET_COLUMN = "species"
 
-# Minimum acceptable performance
 MIN_ACCURACY = 0.90
 MIN_PRECISION = 0.90
 MIN_RECALL = 0.90
 MIN_F1 = 0.90
-
 
 def load_dataset():
     assert os.path.exists(DATA_PATH), (
@@ -41,15 +47,16 @@ def load_dataset():
 
 
 def load_model():
-    assert os.path.exists(MODEL_PATH), (
-        "Model not found. "
-        "Run training or execute 'dvc pull'."
-    )
 
-    return joblib.load(MODEL_PATH)
+    model = load_registered_model()
+
+    assert model is not None
+
+    return model
 
 
 def prepare_test_data(df):
+
     X = df[FEATURE_COLUMNS]
     y = df[TARGET_COLUMN]
 
@@ -64,14 +71,7 @@ def prepare_test_data(df):
     return X_test, y_test
 
 
-def test_model_file_exists():
-    """Verify trained model exists."""
-
-    assert os.path.exists(MODEL_PATH)
-
-
 def test_model_can_be_loaded():
-    """Verify joblib model loads successfully."""
 
     model = load_model()
 
@@ -79,9 +79,9 @@ def test_model_can_be_loaded():
 
 
 def test_model_prediction_shape():
-    """Prediction count should equal test sample count."""
 
     model = load_model()
+
     df = load_dataset()
 
     X_test, y_test = prepare_test_data(df)
@@ -92,9 +92,8 @@ def test_model_prediction_shape():
 
 
 def test_prediction_labels():
-    """Predictions should contain only valid Iris classes."""
-
     model = load_model()
+
     df = load_dataset()
 
     X_test, _ = prepare_test_data(df)
@@ -111,24 +110,26 @@ def test_prediction_labels():
 
 
 def test_model_accuracy():
-    """Accuracy should exceed threshold."""
-
     model = load_model()
+
     df = load_dataset()
 
     X_test, y_test = prepare_test_data(df)
 
     predictions = model.predict(X_test)
 
-    accuracy = accuracy_score(y_test, predictions)
+    accuracy = accuracy_score(
+        y_test,
+        predictions,
+    )
 
     assert accuracy >= MIN_ACCURACY
 
 
 def test_model_precision():
-    """Precision should exceed threshold."""
 
     model = load_model()
+
     df = load_dataset()
 
     X_test, y_test = prepare_test_data(df)
@@ -145,9 +146,9 @@ def test_model_precision():
 
 
 def test_model_recall():
-    """Recall should exceed threshold."""
 
     model = load_model()
+
     df = load_dataset()
 
     X_test, y_test = prepare_test_data(df)
@@ -164,9 +165,9 @@ def test_model_recall():
 
 
 def test_model_f1_score():
-    """F1 score should exceed threshold."""
 
     model = load_model()
+
     df = load_dataset()
 
     X_test, y_test = prepare_test_data(df)
@@ -183,22 +184,26 @@ def test_model_f1_score():
 
 
 def test_metrics_json_exists():
-    """Metrics JSON should exist."""
 
     assert os.path.exists(METRICS_PATH)
 
 
 def test_metrics_json_contents():
-    """Metrics JSON should contain required keys."""
 
     with open(METRICS_PATH, "r") as f:
         metrics = json.load(f)
 
     required = [
-        "accuracy",
-        "precision",
-        "recall",
-        "f1_score",
+        "train_accuracy",
+        "train_precision",
+        "train_recall",
+        "train_f1_score",
+        "test_accuracy",
+        "test_precision",
+        "test_recall",
+        "test_f1_score",
+        "cv_mean_accuracy",
+        "cv_std_accuracy",
         "confusion_matrix",
     ]
 
@@ -207,12 +212,12 @@ def test_metrics_json_contents():
 
 
 def test_saved_metrics_threshold():
-    """Stored metrics should meet quality thresholds."""
 
     with open(METRICS_PATH, "r") as f:
         metrics = json.load(f)
 
-    assert metrics["accuracy"] >= MIN_ACCURACY
-    assert metrics["precision"] >= MIN_PRECISION
-    assert metrics["recall"] >= MIN_RECALL
-    assert metrics["f1_score"] >= MIN_F1
+    assert metrics["test_accuracy"] >= MIN_ACCURACY
+    assert metrics["test_precision"] >= MIN_PRECISION
+    assert metrics["test_recall"] >= MIN_RECALL
+    assert metrics["test_f1_score"] >= MIN_F1
+

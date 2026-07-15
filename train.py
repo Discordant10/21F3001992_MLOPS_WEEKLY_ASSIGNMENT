@@ -1,7 +1,10 @@
 import json
 import os
+import tempfile
 
 import joblib
+import mlflow
+import mlflow.sklearn
 import pandas as pd
 import yaml
 
@@ -41,27 +44,22 @@ PARAMS_PATH = "params.yaml"
 # --------------------------------------------------------------------
 
 def load_dataset(path):
-    """Load dataset."""
-
     if not os.path.exists(path):
         raise FileNotFoundError(f"Dataset not found: {path}")
 
     return pd.read_csv(path)
 
-def load_params():
-    """Load parameters from params.yaml."""
 
+def load_params():
     if not os.path.exists(PARAMS_PATH):
         raise FileNotFoundError(
             f"Parameters file not found: {PARAMS_PATH}"
         )
-
     with open(PARAMS_PATH, "r") as f:
         return yaml.safe_load(f)
 
-def preprocess(df):
-    """Prepare features and labels."""
 
+def preprocess(df):
     feature_columns = [
         "sepal_length",
         "sepal_width",
@@ -76,8 +74,8 @@ def preprocess(df):
 
     return X, y
 
+
 def build_model(n_estimators, max_depth):
-    """Create model instance."""
 
     return RandomForestClassifier(
         n_estimators=n_estimators,
@@ -85,16 +83,15 @@ def build_model(n_estimators, max_depth):
         random_state=42,
     )
 
+
 def train_model(model, X_train, y_train):
-    """Train model."""
 
     model.fit(X_train, y_train)
 
     return model
 
-def calculate_metrics(y_true, predictions):
-    """Calculate classification metrics."""
 
+def calculate_metrics(y_true, predictions):
     accuracy = accuracy_score(y_true, predictions)
 
     precision = precision_score(
@@ -125,9 +122,8 @@ def calculate_metrics(y_true, predictions):
         "f1_score": float(f1),
     }
 
-def evaluate_model(model, X_train, y_train, X_test, y_test):
-    """Evaluate model on train, test and CV."""
 
+def evaluate_model(model, X_train, y_train, X_test, y_test):
     train_predictions = model.predict(X_train)
     test_predictions = model.predict(X_test)
 
@@ -169,23 +165,70 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     return metrics
 
 def save_model(model):
-    """Persist trained model."""
-
     os.makedirs(MODEL_DIR, exist_ok=True)
-
     joblib.dump(model, MODEL_PATH)
-
     print(f"Model saved to {MODEL_PATH}")
 
 def save_metrics(metrics):
-    """Persist metrics."""
-
     os.makedirs(METRICS_DIR, exist_ok=True)
-
     with open(METRICS_PATH, "w") as f:
         json.dump(metrics, f, indent=4)
-
     print(f"Metrics saved to {METRICS_PATH}")
+
+
+def log_to_mlflow(params, model, metrics):
+    tracking_uri = params["mlflow"]["tracking_uri"]
+    experiment_name = params["mlflow"]["experiment_name"]
+    registered_model_name = params["mlflow"][
+        "registered_model_name"
+    ]
+
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
+
+    with mlflow.start_run():
+        mlflow.log_param(
+            "n_estimators",
+            params["model"]["n_estimators"],
+        )
+
+        mlflow.log_param(
+            "max_depth",
+            params["model"]["max_depth"],
+        )
+
+        for key, value in metrics.items():
+            if key != "confusion_matrix":
+                mlflow.log_metric(key, value)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".json",
+            delete=False,
+        ) as tmp:
+            json.dump(
+                metrics["confusion_matrix"],
+                tmp,
+                indent=4,
+            )
+            confusion_matrix_file = tmp.name
+
+        mlflow.log_artifact(
+            confusion_matrix_file,
+            artifact_path="confusion_matrix",
+        )
+
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            artifact_path="model",
+            registered_model_name=registered_model_name,
+        )
+
+        print(
+            f"Model registered as "
+            f"{registered_model_name}"
+        )
+
 
 # --------------------------------------------------------------------
 
@@ -194,18 +237,12 @@ def save_metrics(metrics):
 # --------------------------------------------------------------------
 
 def main():
-
     params = load_params()
-
     n_estimators = params["model"]["n_estimators"]
     max_depth = params["model"]["max_depth"]
-
     print("Loading dataset...")
-
     df = load_dataset(DATA_PATH)
-
     X, y = preprocess(df)
-
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -213,24 +250,20 @@ def main():
         random_state=42,
         stratify=y,
     )
-
     print(
         f"Training model "
         f"(n_estimators={n_estimators}, "
         f"max_depth={max_depth})"
     )
-
     model = build_model(
         n_estimators=n_estimators,
         max_depth=max_depth,
     )
-
     model = train_model(
         model,
         X_train,
         y_train,
     )
-
     metrics = evaluate_model(
         model,
         X_train,
@@ -238,16 +271,16 @@ def main():
         X_test,
         y_test,
     )
-
     print("\nEvaluation Metrics")
-
     for key, value in metrics.items():
         print(f"{key}: {value}")
-
     save_model(model)
-
     save_metrics(metrics)
-
+    log_to_mlflow(
+        params=params,
+        model=model,
+        metrics=metrics,
+    )
     print("\nTraining completed successfully.")
 
 
