@@ -1,7 +1,6 @@
 name: IRIS CI Pipeline
 
 on:
-  push:
   pull_request:
 
 permissions:
