@@ -8,7 +8,7 @@ stages:
       - features.py
 
   feast_materialize:
-    cmd: feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
+    cmd: feast materialize 2024-09-01T00:00:00 2100-01-01T00:00:00
     wdir: feature_repo
     deps:
       - feature_store.yaml
