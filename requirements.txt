@@ -24,3 +24,5 @@ google-cloud-aiplatform
 google-auth
 
 grpcio-status==1.62.3
+fastapi
+uvicorn
