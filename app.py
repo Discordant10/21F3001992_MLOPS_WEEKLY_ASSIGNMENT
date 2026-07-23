@@ -10,7 +10,7 @@ from mlflow_utils import load_registered_model
 
 app = FastAPI(
     title="IRIS Prediction API",
-    version="1.0.0",
+    version="1.0.1",
 )
 
 print("Loading model...")
