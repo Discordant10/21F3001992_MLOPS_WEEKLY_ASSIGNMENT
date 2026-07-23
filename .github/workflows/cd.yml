@@ -32,13 +32,13 @@ jobs:
     - name: Build Image
       run: |
         docker build \
-          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:latest \
+          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1 \
           .
 
     - name: Push Image
       run: |
         docker push \
-          us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:latest
+          us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1
 
     - name: Get GKE Credentials
       run: |

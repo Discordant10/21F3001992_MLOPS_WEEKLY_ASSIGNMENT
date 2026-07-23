@@ -44,4 +44,4 @@ reports/*
 dist/
 build/
 *.egg-info/
-.pytest_cache/
+.pytest_cache/github-cicd-key.json
