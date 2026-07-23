@@ -19,15 +19,26 @@ print("Model loaded")
 
 project_root = Path(__file__).resolve().parent
 
+import subprocess
+
 feature_repo = (
     project_root
     / "feature_repo"
+)
+
+print("Applying Feast repository...")
+
+subprocess.run(
+    ["feast", "apply"],
+    cwd=str(feature_repo),
+    check=True,
 )
 
 store = FeatureStore(
     repo_path=str(feature_repo)
 )
 
+print("Feast repository loaded")
 
 class PredictionRequest(BaseModel):
     iris_id: int
