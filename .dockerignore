@@ -1,0 +1,15 @@
+venv/
+.venv/
+
+.git/
+.dvc/
+
+__pycache__/
+
+reports/
+mlruns/
+
+*.pyc
+*.pyo
+
+feature_repo/data/*.db
