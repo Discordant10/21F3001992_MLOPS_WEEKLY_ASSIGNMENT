@@ -1,0 +1,53 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - week_6
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Build Image
+      run: |
+        docker build \
+          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:latest \
+          .
+
+    - name: Push Image
+      run: |
+        docker push \
+          us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:latest
+
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials iris-cluster \
+          --region us-central1 \
+          --project ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Deploy
+      run: |
+        kubectl apply -f k8s/
+        kubectl rollout restart deployment/iris-api
+        kubectl rollout status deployment/iris-api
