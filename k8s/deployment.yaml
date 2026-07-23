@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: iris-api
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: iris-api
+
+  template:
+    metadata:
+      labels:
+        app: iris-api
+
+    spec:
+      containers:
+      - name: iris-api
+
+        image: us-central1-docker.pkg.dev/project-ccb283b3-613f-40a9-a23/iris-api/iris-api:v1
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 8080
