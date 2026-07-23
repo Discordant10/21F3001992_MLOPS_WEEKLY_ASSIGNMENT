@@ -29,6 +29,12 @@ feature_repo = (
 print("Applying Feast repository...")
 
 subprocess.run(
+    ["feast", "apply"],
+    cwd=str(feature_repo),
+    check=True,
+)
+
+subprocess.run(
     [
         "feast",
         "materialize",
