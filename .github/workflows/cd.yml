@@ -41,10 +41,11 @@ jobs:
           us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1
 
     - name: Get GKE Credentials
-      run: |
-        gcloud container clusters get-credentials iris-cluster \
-          --region us-central1 \
-          --project ${{ secrets.GCP_PROJECT_ID }}
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: iris-cluster
+        location: us-central1
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
 
     - name: Deploy
       run: |
