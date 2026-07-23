@@ -29,7 +29,12 @@ feature_repo = (
 print("Applying Feast repository...")
 
 subprocess.run(
-    ["feast", "apply"],
+    [
+        "feast",
+        "materialize",
+        "2024-09-01T00:00:00",
+        "2100-01-01T00:00:00",
+    ],
     cwd=str(feature_repo),
     check=True,
 )
