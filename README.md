@@ -2,27 +2,86 @@
 
 ## IIT Madras BS Degree Programme
 
-**Course:** MLOps Weekly Assignment – Week 5
-**Roll Number:** 21F3001992
+**Course:** MLOps Weekly Assignment – Week 6  
+**Roll Number:** 21F3001992  
+**Name:** Parag Seth
 
 ---
 
 # Project Overview
 
-This repository implements a complete Machine Learning Operations (MLOps) pipeline for the IRIS classification dataset.
+This repository implements a complete end-to-end MLOps pipeline for the IRIS classification dataset.
 
-The project demonstrates an end-to-end ML workflow including:
+The project demonstrates:
 
-* Model Training
-* Hyperparameter Tuning
-* Feature Management using Feast
-* Experiment Tracking using MLflow
-* Model Registry using MLflow
-* Data Versioning using DVC
-* Google Cloud Storage (GCS) Remote Storage
-* Continuous Integration using GitHub Actions
-* Automated Data Validation and Model Evaluation using PyTest
-* Continuous Machine Learning (CML) Reporting
+- Data Versioning using DVC
+- Feature Management using Feast
+- Experiment Tracking using MLflow
+- Model Registry using MLflow
+- Automated Testing using PyTest
+- Continuous Integration using GitHub Actions
+- Docker Containerization
+- Google Artifact Registry
+- Kubernetes Deployment using GKE
+- Continuous Deployment using GitHub Actions
+
+---
+
+# System Architecture
+
+```text
+                    ┌─────────────────┐
+                    │   Developer     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ GitHub Repo     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ GitHub Actions  │
+                    │ CD Pipeline     │
+                    └────────┬────────┘
+                             │
+             ┌───────────────┴───────────────┐
+             ▼                               ▼
+
+    ┌─────────────────┐          ┌─────────────────┐
+    │ Docker Build    │          │ Automated Tests │
+    └────────┬────────┘          └─────────────────┘
+             │
+             ▼
+
+    ┌─────────────────────────────────────┐
+    │ Google Artifact Registry            │
+    └────────┬────────────────────────────┘
+             │
+             ▼
+
+    ┌─────────────────────────────────────┐
+    │ Google Kubernetes Engine (GKE)      │
+    └────────┬────────────────────────────┘
+             │
+             ▼
+
+    ┌─────────────────────────────────────┐
+    │ FastAPI IRIS Prediction Service     │
+    └────────┬────────────────────────────┘
+             │
+             ▼
+
+    ┌─────────────────────────────────────┐
+    │ Feast Feature Store                 │
+    └────────┬────────────────────────────┘
+             │
+             ▼
+
+    ┌─────────────────────────────────────┐
+    │ MLflow Model Registry               │
+    └─────────────────────────────────────┘
+```
 
 ---
 
@@ -32,389 +91,385 @@ The project demonstrates an end-to-end ML workflow including:
 .
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
-├── .dvc/
+│       ├── ci.yml
+│       └── cd.yml
+│
 ├── data/
 │   ├── iris_data_adapted_for_feast.csv
 │   └── iris_data_adapted_for_feast.parquet
+│
 ├── feature_repo/
-│   ├── data/
 │   ├── feature_store.yaml
-│   └── features.py
-├── metrics/
-│   ├── .gitignore
-│   └── train_metrics.json
-├── reports/
-│   ├── .gitignore
-│   └── report.md
+│   ├── features.py
+│   └── data/
+│
+├── k8s/
+│   ├── deployment.yaml
+│   └── service.yaml
+│
 ├── tests/
 │   ├── test_data_validation.py
 │   └── test_model.py
+│
+├── Dockerfile
+├── .dockerignore
+├── app.py
 ├── train.py
 ├── inference.py
 ├── mlflow_utils.py
-├── params.yaml
 ├── dvc.yaml
 ├── dvc.lock
+├── params.yaml
 ├── requirements.txt
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
 ---
 
 # Technologies Used
 
-* Python 3.11
-* Scikit-Learn
-* Pandas
-* NumPy
-* Feast Feature Store
-* MLflow
-* DVC
-* Google Cloud Storage
-* GitHub Actions
-* PyTest
-* CML
+## Machine Learning
 
----
+- Scikit-Learn
+- Pandas
+- NumPy
 
-# Project Workflow
+## Feature Store
 
-```text
-Developer
-        │
-        ▼
-Pull Request
-        │
-        ▼
-GitHub Actions
-        │
-        ▼
-Install Dependencies
-        │
-        ▼
-Authenticate to Google Cloud
-        │
-        ▼
-DVC Pull
-        │
-        ▼
-Train Model
-        │
-        ▼
-Log Experiment to MLflow
-        │
-        ▼
-Register Model in MLflow Registry
-        │
-        ▼
-Run PyTest Suite
-        │
-        ▼
-Generate Markdown Report
-        │
-        ▼
-Publish GitHub Actions Summary
-        │
-        ▼
-Upload Report Artifact
-        │
-        ▼
-Publish Pull Request Comment using CML
-```
+- Feast
+
+## Experiment Tracking
+
+- MLflow
+
+## Data Versioning
+
+- DVC
+- Google Cloud Storage
+
+## Testing
+
+- PyTest
+
+## CI/CD
+
+- GitHub Actions
+
+## Deployment
+
+- Docker
+- Google Artifact Registry
+- Google Kubernetes Engine (GKE)
+- FastAPI
+- Uvicorn
 
 ---
 
 # Dataset
 
-The project uses the Feast-adapted IRIS dataset supplied as part of the course.
+The project uses the Feast-adapted IRIS dataset.
 
 Features:
 
-* sepal_length
-* sepal_width
-* petal_length
-* petal_width
+- sepal_length
+- sepal_width
+- petal_length
+- petal_width
 
-Additional Metadata:
+Metadata:
 
-* iris_id
-* event_timestamp
-* created_timestamp
+- iris_id
+- event_timestamp
+- created_timestamp
 
 Target:
 
-* species
+- species
 
 ---
 
-# DVC Pipeline
+# DVC Data Versioning
 
-Initialize DVC
+Initialize DVC:
 
 ```bash
 dvc init
 ```
 
-Pull versioned data
+Pull data:
 
 ```bash
 dvc pull
 ```
 
-Run pipeline
+Run pipeline:
 
 ```bash
 dvc repro
 ```
 
-Push data updates
+Push updates:
 
 ```bash
 dvc push
 ```
 
-DVC now tracks datasets and metrics only.
-
-Models are stored and versioned through the MLflow Model Registry.
-
 ---
 
 # Feast Feature Store
 
-Apply feature definitions
+Apply definitions:
 
 ```bash
 cd feature_repo
-
 feast apply
 ```
 
-Materialize features
+Materialize:
 
 ```bash
-feast materialize 2025-09-01T00:00:00 2100-01-01T00:00:00
+feast materialize 2024-09-01T00:00:00 2100-01-01T00:00:00
 ```
 
 ---
 
-# MLflow Configuration
+# MLflow Model Registry
 
-Configuration is stored in:
+The model is tracked and registered in MLflow.
 
-```text
-params.yaml
-```
-
-Example:
-
-```yaml
-model:
-  n_estimators: 50
-  max_depth: 5
-
-mlflow:
-  tracking_uri: http://<server-ip>:5000
-  experiment_name: iris-random-forest
-  registered_model_name: IrisClassifier
-```
-
----
-
-# MLflow Experiment Tracking
-
-Train the model
-
-```bash
-python train.py
-```
-
-Each training run logs:
-
-* Hyperparameters
-* Evaluation Metrics
-* Confusion Matrix
-* Trained Model Artifact
-
-The trained model is automatically registered in the MLflow Model Registry.
-
----
-
-# Hyperparameter Tuning
-
-The training pipeline supports hyperparameter tuning through:
-
-```yaml
-model:
-  n_estimators:
-  max_depth:
-```
-
-Different parameter combinations create separate MLflow experiment runs, allowing side-by-side comparison through the MLflow UI.
-
----
-
-# Model Registry
-
-Registered Model:
+Registered model:
 
 ```text
 IrisClassifier
 ```
 
-The latest registered model version is retrieved automatically during inference and testing.
+The deployed API automatically loads the latest registered version from MLflow.
 
 ---
 
-# Run Inference
+# Training
+
+Run training:
+
+```bash
+python train.py
+```
+
+The training pipeline:
+
+1. Loads versioned data
+2. Trains RandomForestClassifier
+3. Evaluates performance
+4. Logs metrics to MLflow
+5. Registers model in MLflow
+
+---
+
+# Local Inference
+
+Run:
 
 ```bash
 python inference.py --id 1
 ```
 
-Inference:
+Steps:
 
-1. Loads the latest model from the MLflow Model Registry
-2. Fetches features from the Feast Online Store
-3. Generates predictions
+1. Load latest MLflow model
+2. Retrieve features from Feast
+3. Generate prediction
 
 ---
 
-# Automated Unit Tests
+# Docker Containerization
 
-Run all tests locally
+Build image:
 
 ```bash
-pytest tests -v
+docker build -t iris-api .
 ```
 
-## Data Validation Tests
+Run locally:
 
-The test suite validates:
+```bash
+docker run -p 8080:8080 iris-api
+```
 
-* Dataset availability
-* Expected schema
-* Required timestamp columns
-* iris_id column
-* Numeric feature types
-* Missing values
-* Valid species labels
-* Finite numerical feature values
-* Reasonable feature value ranges
+Health check:
 
-## Model Evaluation Tests
+```bash
+curl http://localhost:8080/
+```
 
-The test suite verifies:
+Prediction:
 
-* MLflow registered model loads successfully
-* Prediction generation
-* Prediction validity
-* Accuracy threshold
-* Precision threshold
-* Recall threshold
-* F1-score threshold
-* Metrics file generation
+```bash
+curl -X POST http://localhost:8080/predict \
+-H "Content-Type: application/json" \
+-d '{"iris_id":1}'
+```
 
 ---
 
-# GitHub Actions Continuous Integration
+# Google Artifact Registry
 
-Workflow file:
+Docker images are pushed to:
+
+```text
+us-central1-docker.pkg.dev/<PROJECT_ID>/iris-api/iris-api
+```
+
+Artifact Registry acts as the container image repository for Kubernetes deployments.
+
+---
+
+# Kubernetes Deployment
+
+Deployment:
+
+```text
+k8s/deployment.yaml
+```
+
+Service:
+
+```text
+k8s/service.yaml
+```
+
+Deploy:
+
+```bash
+kubectl apply -f k8s/
+```
+
+Verify:
+
+```bash
+kubectl get deployment
+kubectl get pods
+kubectl get svc
+```
+
+---
+
+# GitHub Actions CI
+
+Workflow:
 
 ```text
 .github/workflows/ci.yml
 ```
 
-The workflow automatically runs on:
+Functions:
 
-* Every Pull Request
-
-Workflow Steps:
-
-1. Checkout Repository
-2. Set up Python
-3. Install Dependencies
-4. Authenticate with Google Cloud
-5. Pull versioned data using DVC
-6. Train the model
-7. Log experiment to MLflow
-8. Execute the PyTest suite
-9. Generate a Markdown report
-10. Publish the report to the GitHub Actions Summary
-11. Upload the report as a GitHub Actions artifact
-12. Publish the report as a Pull Request comment using CML
+- Install dependencies
+- Authenticate to GCP
+- Pull DVC data
+- Train model
+- Run tests
+- Generate reports
 
 ---
 
-# Google Cloud Configuration
+# GitHub Actions Continuous Deployment
 
-Create a Service Account with appropriate Storage permissions.
-
-Generate a JSON key.
-
-Add the JSON key as a GitHub Actions Secret.
-
-Required secret:
+Workflow:
 
 ```text
-GCP_SA_KEY
+.github/workflows/cd.yml
+```
+
+Triggered on:
+
+```text
+Push to week_6 branch
+```
+
+Pipeline Steps:
+
+1. Checkout repository
+2. Authenticate with GCP
+3. Configure Docker
+4. Build Docker image
+5. Push image to Artifact Registry
+6. Retrieve GKE credentials
+7. Deploy to Kubernetes
+8. Restart deployment
+9. Verify rollout
+
+---
+
+# API Endpoints
+
+## Health Check
+
+```http
+GET /
+```
+
+Response:
+
+```json
+{
+  "status": "healthy"
+}
 ```
 
 ---
 
-# GitHub Secrets
+## Prediction
 
-Repository
+```http
+POST /predict
+```
 
-Settings
+Request:
 
-→ Secrets and Variables
+```json
+{
+  "iris_id": 1
+}
+```
 
-→ Actions
+Response:
 
-Required Secret:
-
-```text
-GCP_SA_KEY
+```json
+{
+  "iris_id": 1,
+  "prediction": "setosa"
+}
 ```
 
 ---
 
-# Continuous Machine Learning (CML)
+# Deployment Validation
 
-The workflow publishes test results in three different ways.
+Verify service:
 
-## 1. GitHub Actions Summary
+```bash
+kubectl get svc
+```
 
-A formatted Markdown report is displayed directly on the GitHub Actions run page.
+Verify pods:
 
-## 2. GitHub Actions Artifact
+```bash
+kubectl get pods
+```
 
-The generated Markdown report is uploaded as a downloadable workflow artifact.
+Health check:
 
-## 3. Pull Request Comment
+```bash
+curl http://<LOAD_BALANCER_IP>/
+```
 
-When the workflow is triggered by a Pull Request, CML automatically publishes the report as a comment on the Pull Request.
+Prediction:
 
-The report includes:
-
-* Test execution status
-* Test Accuracy
-* Test Precision
-* Test Recall
-* Test F1 Score
-
----
-
-# Expected Model Performance
-
-Typical performance:
-
-* Test Accuracy ≈ 0.90 – 0.97
-* Test Precision ≈ 0.90 – 0.97
-* Test Recall ≈ 0.90 – 0.97
-* Test F1 Score ≈ 0.90 – 0.97
+```bash
+curl -X POST http://<LOAD_BALANCER_IP>/predict \
+-H "Content-Type: application/json" \
+-d '{"iris_id":1}'
+```
 
 ---
 
@@ -422,40 +477,41 @@ Typical performance:
 
 ## Week 1
 
-* Vertex AI Pipeline
-* Model Training
+- Vertex AI Pipeline
+- Model Training
 
 ## Week 2
 
-* Data Versioning using DVC
-* Google Cloud Storage Remote
+- DVC
+- GCS Remote Storage
 
 ## Week 3
 
-* Feast Feature Store Integration
+- Feast Feature Store
 
 ## Week 4
 
-* GitHub Actions Continuous Integration
-* Automated Data Validation
-* Automated Model Evaluation
-* DVC Integration within CI
-* GitHub Actions Summary Report
-* GitHub Actions Artifact Upload
-* CML Pull Request Reporting
+- GitHub Actions CI
+- Automated Testing
+- CML Reporting
 
 ## Week 5
 
-* Hyperparameter Tuning
-* MLflow Experiment Tracking
-* MLflow Model Registry
-* Registry-Based Inference
-* Registry-Based Testing
-* Removal of Model Tracking from DVC
+- MLflow Tracking
+- MLflow Model Registry
+- Registry-based Inference
+
+## Week 6
+
+- Docker Containerization
+- Artifact Registry
+- Google Kubernetes Engine
+- GitHub Actions Continuous Deployment
+- Public Prediction API
 
 ---
 
 # Author
 
-**Name:** Parag Seth
+**Parag Seth**  
 **Roll Number:** 21F3001992
