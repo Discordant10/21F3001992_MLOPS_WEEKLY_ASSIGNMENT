@@ -1,283 +1,126 @@
-# IRIS Classification Pipeline with MLOps
+# IRIS Classification MLOps Pipeline (Week 7)
 
-## IIT Madras BS Degree Programme
+## Overview
 
-**Course:** MLOps Weekly Assignment – Week 6  
-**Roll Number:** 21F3001992  
-**Name:** Parag Seth
+This repository implements a complete end-to-end MLOps pipeline for the IRIS classification problem using modern MLOps tools and Google Cloud Platform.
 
----
+The project covers:
 
-# Project Overview
-
-This repository implements a complete end-to-end MLOps pipeline for the IRIS classification dataset.
-
-The project demonstrates:
-
-- Data Versioning using DVC
-- Feature Management using Feast
-- Experiment Tracking using MLflow
-- Model Registry using MLflow
-- Automated Testing using PyTest
-- Continuous Integration using GitHub Actions
-- Docker Containerization
+- Data Version Control (DVC)
+- Feast Feature Store
+- MLflow Model Registry
+- FastAPI inference service
+- Docker containerization
 - Google Artifact Registry
-- Kubernetes Deployment using GKE
-- Continuous Deployment using GitHub Actions
+- Google Kubernetes Engine (GKE)
+- GitHub Actions CI/CD
+
+The deployed API loads the latest registered model from MLflow, materializes features into Feast's online store, and serves predictions through a REST API running on Kubernetes.
 
 ---
 
-# System Architecture
+# Project Structure
 
-```text
-                    ┌─────────────────┐
-                    │   Developer     │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ GitHub Repo     │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ GitHub Actions  │
-                    │ CD Pipeline     │
-                    └────────┬────────┘
-                             │
-             ┌───────────────┴───────────────┐
-             ▼                               ▼
-    ┌─────────────────┐          ┌─────────────────┐
-    │ Docker Build    │          │ Automated Tests │
-    └────────┬────────┘          └─────────────────┘
-             │
-             ▼
-    ┌─────────────────────────────────────┐
-    │ Google Artifact Registry            │
-    └────────┬────────────────────────────┘
-             │
-             ▼
-    ┌─────────────────────────────────────┐
-    │ Google Kubernetes Engine (GKE)      │
-    └────────┬────────────────────────────┘
-             │
-             ▼
-    ┌─────────────────────────────────────┐
-    │ FastAPI IRIS Prediction Service     │
-    └────────┬────────────────────────────┘
-             │
-             ▼
-    ┌─────────────────────────────────────┐
-    │ Feast Feature Store                 │
-    └────────┬────────────────────────────┘
-             │
-             ▼
-    ┌─────────────────────────────────────┐
-    │ MLflow Model Registry               │
-    └─────────────────────────────────────┘
 ```
-
----
-
-# Repository Structure
-
-```text
 .
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── cd.yml
-│
-├── data/
-│   ├── iris_data_adapted_for_feast.csv
-│   └── iris_data_adapted_for_feast.parquet
-│
-├── feature_repo/
-│   ├── feature_store.yaml
-│   ├── features.py
-│   └── data/
-│
-├── k8s/
-│   ├── deployment.yaml
-│   └── service.yaml
-│
-├── tests/
-│   ├── test_data_validation.py
-│   └── test_model.py
-│
-├── Dockerfile
-├── .dockerignore
 ├── app.py
 ├── train.py
 ├── inference.py
 ├── mlflow_utils.py
+├── Dockerfile
+├── requirements.txt
 ├── dvc.yaml
 ├── dvc.lock
 ├── params.yaml
-├── requirements.txt
-└── README.md
+├── feature_repo/
+├── data/
+├── models/
+├── metrics/
+├── k8s/
+│   ├── deployment.yaml
+│   └── service.yaml
+├── tests/
+└── .github/
+    └── workflows/
+        ├── ci.yml
+        └── cd.yml
 ```
 
 ---
 
-# Technologies Used
+# Technology Stack
 
-## Machine Learning
-
-- Scikit-Learn
-- Pandas
-- NumPy
-
-## Feature Store
-
-- Feast
-
-## Experiment Tracking
-
-- MLflow
-
-## Data Versioning
-
-- DVC
-- Google Cloud Storage
-
-## Testing
-
-- PyTest
-
-## CI/CD
-
-- GitHub Actions
-
-## Deployment
-
-- Docker
-- Google Artifact Registry
-- Google Kubernetes Engine (GKE)
+- Python 3.11
 - FastAPI
-- Uvicorn
+- Scikit-learn
+- Feast
+- MLflow
+- DVC
+- Docker
+- GitHub Actions
+- Google Cloud Platform
+- Artifact Registry
+- Google Kubernetes Engine (GKE)
 
 ---
 
-# Dataset
+# Pipeline Overview
 
-The project uses the Feast-adapted IRIS dataset.
+## Training Pipeline
 
-Features:
-
-- sepal_length
-- sepal_width
-- petal_length
-- petal_width
-
-Metadata:
-
-- iris_id
-- event_timestamp
-- created_timestamp
-
-Target:
-
-- species
-
----
-
-# DVC Data Versioning
-
-Initialize DVC:
-
-```bash
-dvc init
-```
-
-Pull data:
-
-```bash
-dvc pull
-```
-
-Run pipeline:
-
-```bash
-dvc repro
-```
-
-Push updates:
-
-```bash
-dvc push
-```
+Dataset
+↓
+Feature Engineering
+↓
+Feast Apply
+↓
+Feast Materialize
+↓
+Model Training
+↓
+Metrics Generation
+↓
+MLflow Model Registry
+↓
+Registered Model
 
 ---
 
-# Feast Feature Store
+## Deployment Pipeline
 
-Apply definitions:
+Git Push
 
-```bash
-cd feature_repo
-feast apply
-```
+↓
 
-Materialize:
+GitHub Actions
 
-```bash
-feast materialize 2024-09-01T00:00:00 2100-01-01T00:00:00
-```
+↓
 
----
+Docker Build
 
-# MLflow Model Registry
+↓
 
-The model is tracked and registered in MLflow.
+Artifact Registry
 
-Registered model:
+↓
 
-```text
-IrisClassifier
-```
+GKE Deployment
 
-The deployed API automatically loads the latest registered version from MLflow.
+↓
 
----
+FastAPI Service
 
-# Training
+↓
 
-Run training:
-
-```bash
-python train.py
-```
-
-The training pipeline:
-
-1. Loads versioned data
-2. Trains RandomForestClassifier
-3. Evaluates performance
-4. Logs metrics to MLflow
-5. Registers model in MLflow
+Prediction API
 
 ---
 
-# Local Inference
+# Docker
 
-Run:
+The inference application is containerized using Docker.
 
-```bash
-python inference.py --id 1
-```
-
-Steps:
-
-1. Load latest MLflow model
-2. Retrieve features from Feast
-3. Generate prediction
-
----
-
-# Docker Containerization
-
-Build image:
+Build locally:
 
 ```bash
 docker build -t iris-api .
@@ -289,7 +132,7 @@ Run locally:
 docker run -p 8080:8080 iris-api
 ```
 
-Health check:
+Test:
 
 ```bash
 curl http://localhost:8080/
@@ -303,32 +146,23 @@ curl -X POST http://localhost:8080/predict \
 -d '{"iris_id":1}'
 ```
 
----
+Expected output:
 
-# Google Artifact Registry
-
-Docker images are pushed to:
-
-```text
-us-central1-docker.pkg.dev/<PROJECT_ID>/iris-api/iris-api
+```json
+{
+  "iris_id":1,
+  "prediction":"setosa"
+}
 ```
-
-Artifact Registry acts as the container image repository for Kubernetes deployments.
 
 ---
 
-# Kubernetes Deployment
+# Kubernetes
 
-Deployment:
+Deployment files are available under:
 
-```text
-k8s/deployment.yaml
 ```
-
-Service:
-
-```text
-k8s/service.yaml
+k8s/
 ```
 
 Deploy:
@@ -341,154 +175,187 @@ Verify:
 
 ```bash
 kubectl get deployment
+
 kubectl get pods
+
 kubectl get svc
 ```
 
 ---
 
-# GitHub Actions CI
+# MLflow
 
-Workflow:
+The inference API automatically loads the latest registered model from MLflow.
 
-```text
-.github/workflows/ci.yml
 ```
-
-Functions:
-
-- Install dependencies
-- Authenticate to GCP
-- Pull DVC data
-- Train model
-- Run tests
-- Generate reports
+models:/IrisClassifier/latest
+```
 
 ---
 
-# GitHub Actions Continuous Deployment
+# Feast
 
-Workflow:
+The application automatically:
 
-```text
-.github/workflows/cd.yml
+- Applies the Feast repository
+- Materializes the online feature store
+- Loads features during inference
+
+Feature View:
+
+```
+iris_features
 ```
 
-Triggered on:
+Entity:
 
-```text
-Push to week_6 branch
+```
+iris_id
 ```
 
-Pipeline Steps:
+---
+
+# GitHub Actions
+
+## Continuous Integration
+
+Runs automatically on every push.
+
+Performs:
+
+- Install dependencies
+- Run tests
+- Execute training pipeline
+- Validate artifacts
+
+---
+
+## Continuous Deployment
+
+Runs on pushes to:
+
+```
+week_6
+```
+
+Pipeline:
 
 1. Checkout repository
-2. Authenticate with GCP
+2. Authenticate with Google Cloud
 3. Configure Docker
 4. Build Docker image
 5. Push image to Artifact Registry
-6. Retrieve GKE credentials
-7. Deploy to Kubernetes
-8. Restart deployment
-9. Verify rollout
+6. Fetch GKE credentials
+7. Deploy updated image to Kubernetes
+8. Wait for rollout completion
 
 ---
 
-# API Endpoints
+# Google Cloud Services Used
+
+- Compute Engine
+- Artifact Registry
+- Google Kubernetes Engine
+- Cloud IAM
+
+---
+
+# REST API
 
 ## Health Check
 
-```http
+```
 GET /
 ```
 
-Response:
+Response
 
 ```json
 {
-  "status": "healthy"
+  "status":"healthy"
 }
 ```
 
 ---
 
-# Prediction
+## Prediction
 
-```http
+```
 POST /predict
 ```
 
-Request:
+Input
 
 ```json
 {
-  "iris_id": 1
+  "iris_id":1
 }
 ```
 
-Response:
+Response
 
 ```json
 {
-  "iris_id": 1,
-  "prediction": "setosa"
+  "iris_id":1,
+  "prediction":"setosa"
 }
 ```
 
 ---
 
-# Deployment Validation
+# Model
 
-Verify service:
+Algorithm
 
-```bash
-kubectl get svc
+```
+Random Forest Classifier
 ```
 
-Verify pods:
+Problem
 
-```bash
-kubectl get pods
+```
+Multi-class Classification
 ```
 
-Health check:
+Dataset
 
-```bash
-curl http://<LOAD_BALANCER_IP>/
 ```
-
-Prediction:
-
-```bash
-curl -X POST http://<LOAD_BALANCER_IP>/predict \
--H "Content-Type: application/json" \
--d '{"iris_id":1}'
+IRIS Dataset
 ```
 
 ---
 
-# Stress Testing Features
+# How to Run
 
-This project now includes comprehensive stress testing capabilities:
+Clone repository
 
-1. **Automated Load Testing**: The CI/CD pipeline automatically runs load tests using `wrk` after deployment
-2. **Horizontal Pod Autoscaling**: Configured with HPA to scale pods based on CPU utilization
-3. **Multi-Scenario Testing**: Support for different load test scenarios including:
-   - Basic load test (1000 concurrent connections)
-   - High concurrency test (2000 concurrent connections)
-   - Constrained scaling tests (maxReplicas: 1)
-4. **Monitoring Ready**: The setup provides foundation for GCP Cloud Monitoring and Logging
-
-To run stress testing scenarios locally:
 ```bash
-./stress_test_scenarios.sh [scenario]
+git clone <repository_url>
 ```
-Where scenario can be:
-- `basic` - Run basic load test (1000 connections)
-- `high_concurrency` - Run high concurrency test (2000 connections) 
-- `check_hpa` - Check HPA and pod status
-- `demo_scaling` - Demonstrate scaling behavior
-- `demo_constrained` - Demonstrate constrained scaling (maxReplicas: 1)
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run training
+
+```bash
+dvc repro
+```
+
+Run API
+
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8080
+```
+
+Open
+
+```
+http://localhost:8080
+```
 
 ---
 
@@ -496,41 +363,47 @@ Where scenario can be:
 
 ## Week 1
 
-- Vertex AI Pipeline
-- Model Training
+- Project setup
+- Dataset preparation
 
 ## Week 2
 
-- DVC
-- GCS Remote Storage
+- DVC pipeline
+- Data versioning
 
 ## Week 3
 
-- Feast Feature Store
+- Feature engineering
 
 ## Week 4
 
-- GitHub Actions CI
-- Automated Testing
-- CML Reporting
+- Feast integration
 
 ## Week 5
 
-- MLflow Tracking
-- MLflow Model Registry
-- Registry-based Inference
+- MLflow model registry
+- FastAPI inference service
 
 ## Week 6
 
-- Docker Containerization
+- Docker containerization
 - Artifact Registry
-- Google Kubernetes Engine
-- GitHub Actions Continuous Deployment
-- Public Prediction API
+- Kubernetes deployment
+- GitHub Actions CD pipeline
+
+## Week 7
+
+- Fully automated deployment to Google Kubernetes Engine
+- Docker image published to Artifact Registry through GitHub Actions
+- Automatic Feast repository initialization and feature materialization at application startup
+- End-to-end deployment validation
+- REST API successfully serving predictions from the deployed Kubernetes service
 
 ---
 
 # Author
 
-**Parag Seth**  
-**Roll Number:** 21F3001992
+Parag Seth 
+21F3001992
+IIT Madras - Online BS Degree
+Course: MLOps
