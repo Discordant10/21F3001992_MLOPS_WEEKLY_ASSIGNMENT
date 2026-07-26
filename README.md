@@ -47,37 +47,31 @@ The project demonstrates:
                              │
              ┌───────────────┴───────────────┐
              ▼                               ▼
-
     ┌─────────────────┐          ┌─────────────────┐
     │ Docker Build    │          │ Automated Tests │
     └────────┬────────┘          └─────────────────┘
              │
              ▼
-
     ┌─────────────────────────────────────┐
     │ Google Artifact Registry            │
     └────────┬────────────────────────────┘
              │
              ▼
-
     ┌─────────────────────────────────────┐
     │ Google Kubernetes Engine (GKE)      │
     └────────┬────────────────────────────┘
              │
              ▼
-
     ┌─────────────────────────────────────┐
     │ FastAPI IRIS Prediction Service     │
     └────────┬────────────────────────────┘
              │
              ▼
-
     ┌─────────────────────────────────────┐
     │ Feast Feature Store                 │
     └────────┬────────────────────────────┘
              │
              ▼
-
     ┌─────────────────────────────────────┐
     │ MLflow Model Registry               │
     └─────────────────────────────────────┘
@@ -418,7 +412,7 @@ Response:
 
 ---
 
-## Prediction
+# Prediction
 
 ```http
 POST /predict
@@ -470,6 +464,31 @@ curl -X POST http://<LOAD_BALANCER_IP>/predict \
 -H "Content-Type: application/json" \
 -d '{"iris_id":1}'
 ```
+
+---
+
+# Stress Testing Features
+
+This project now includes comprehensive stress testing capabilities:
+
+1. **Automated Load Testing**: The CI/CD pipeline automatically runs load tests using `wrk` after deployment
+2. **Horizontal Pod Autoscaling**: Configured with HPA to scale pods based on CPU utilization
+3. **Multi-Scenario Testing**: Support for different load test scenarios including:
+   - Basic load test (1000 concurrent connections)
+   - High concurrency test (2000 concurrent connections)
+   - Constrained scaling tests (maxReplicas: 1)
+4. **Monitoring Ready**: The setup provides foundation for GCP Cloud Monitoring and Logging
+
+To run stress testing scenarios locally:
+```bash
+./stress_test_scenarios.sh [scenario]
+```
+Where scenario can be:
+- `basic` - Run basic load test (1000 connections)
+- `high_concurrency` - Run high concurrency test (2000 connections) 
+- `check_hpa` - Check HPA and pod status
+- `demo_scaling` - Demonstrate scaling behavior
+- `demo_constrained` - Demonstrate constrained scaling (maxReplicas: 1)
 
 ---
 
