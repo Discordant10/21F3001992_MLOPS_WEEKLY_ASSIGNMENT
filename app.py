@@ -1,71 +1,68 @@
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from feast import FeatureStore
 from mlflow_utils import load_registered_model
-
 
 app = FastAPI(
     title="IRIS Prediction API",
     version="1.0.0",
 )
 
-print("Loading model...")
-model = load_registered_model()
-print("Model loaded")
-
 project_root = Path(__file__).resolve().parent
+feature_repo = project_root / "feature_repo"
 
-import subprocess
+model = None
+store = None
 
-feature_repo = (
-    project_root
-    / "feature_repo"
-)
-
-print("Applying Feast repository...")
-
-subprocess.run(
-    ["feast", "apply"],
-    cwd=str(feature_repo),
-    check=True,
-)
-
-subprocess.run(
-    [
-        "feast",
-        "materialize",
-        "2024-09-01T00:00:00",
-        "2100-01-01T00:00:00",
-    ],
-    cwd=str(feature_repo),
-    check=True,
-)
-
-store = FeatureStore(
-    repo_path=str(feature_repo)
-)
-
-print("Feast repository loaded")
 
 class PredictionRequest(BaseModel):
     iris_id: int
 
 
+@app.on_event("startup")
+def startup_event():
+    global model, store
+
+    print("========== API STARTUP ==========")
+
+    print("Loading MLflow model...")
+    model = load_registered_model()
+    print("Model loaded successfully.")
+
+    print("Initializing Feast FeatureStore...")
+    store = FeatureStore(repo_path=str(feature_repo))
+    print("FeatureStore initialized.")
+
+    print("========== STARTUP COMPLETE ==========")
+
+
 @app.get("/")
 def health_check():
+    return {
+        "status": "healthy",
+        "service": "iris-api"
+    }
+
+
+@app.get("/health")
+def health():
     return {
         "status": "healthy"
     }
 
 
 @app.post("/predict")
-def predict(
-    request: PredictionRequest,
-):
+def predict(request: PredictionRequest):
+    if model is None or store is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded yet."
+        )
+
     features = (
         store.get_online_features(
             features=[
@@ -79,36 +76,24 @@ def predict(
                     "iris_id": request.iris_id
                 }
             ],
-        )
-        .to_dict()
+        ).to_dict()
     )
 
     if (
         len(features["sepal_length"]) == 0
-        or features["sepal_length"][0]
-        is None
+        or features["sepal_length"][0] is None
     ):
-        return {
-            "error":
-            f"No features found "
-            f"for iris_id="
-            f"{request.iris_id}"
-        }
+        raise HTTPException(
+            status_code=404,
+            detail=f"No features found for iris_id={request.iris_id}"
+        )
 
     X = pd.DataFrame(
         {
-            "sepal_length": [
-                features["sepal_length"][0]
-            ],
-            "sepal_width": [
-                features["sepal_width"][0]
-            ],
-            "petal_length": [
-                features["petal_length"][0]
-            ],
-            "petal_width": [
-                features["petal_width"][0]
-            ],
+            "sepal_length": [features["sepal_length"][0]],
+            "sepal_width": [features["sepal_width"][0]],
+            "petal_length": [features["petal_length"][0]],
+            "petal_width": [features["petal_width"][0]],
         }
     )
 
@@ -116,7 +101,5 @@ def predict(
 
     return {
         "iris_id": request.iris_id,
-        "prediction": str(
-            prediction[0]
-        ),
+        "prediction": str(prediction[0]),
     }
