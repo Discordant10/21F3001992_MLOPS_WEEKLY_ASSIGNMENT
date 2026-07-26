@@ -3,6 +3,6 @@ model:
   max_depth: 10
 
 mlflow:
-  tracking_uri: "http://35.239.18.252:5000"
+  tracking_uri: "http://34.71.105.180:5000"
   experiment_name: "iris-random-forest"
   registered_model_name: "IrisClassifier"

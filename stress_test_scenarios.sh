@@ -2,7 +2,7 @@
 
 # Stress Testing Scenarios Script
 # This script helps run different load test scenarios as part of the MLOps assignment
-
+EXTERNAL_IP=$(kubectl get svc iris-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo "=== IRIS API Stress Testing Scenarios ==="
 
 # Function to run basic load test with 1000 concurrent connections
