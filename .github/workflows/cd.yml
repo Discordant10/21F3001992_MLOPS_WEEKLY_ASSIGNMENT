@@ -13,42 +13,69 @@ jobs:
       contents: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
-    - name: Authenticate GCP
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
 
-    - name: Setup gcloud
-      uses: google-github-actions/setup-gcloud@v2
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
 
-    - name: Configure Docker
-      run: |
-        gcloud auth configure-docker us-central1-docker.pkg.dev
+      - name: Build Image
+        run: |
+          docker build \
+            -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1 \
+            .
 
-    - name: Build Image
-      run: |
-        docker build \
-          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1 \
-          .
+      - name: Push Image
+        run: |
+          docker push \
+            us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1
 
-    - name: Push Image
-      run: |
-        docker push \
-          us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-api/iris-api:v1
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: iris-cluster
+          location: us-central1
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Get GKE Credentials
-      uses: google-github-actions/get-gke-credentials@v2
-      with:
-        cluster_name: iris-cluster
-        location: us-central1
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Deploy
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout restart deployment/iris-api
+          kubectl rollout status deployment/iris-api
 
-    - name: Deploy
-      run: |
-        kubectl apply -f k8s/
-        kubectl rollout restart deployment/iris-api
-        kubectl rollout status deployment/iris-api
+      - name: Apply HPA Configuration
+        run: |
+          kubectl apply -f k8s/hpa.yaml
+
+      - name: Wait for Deployment
+        run: |
+          sleep 30
+          echo "Checking if service is ready..."
+          kubectl get svc iris-api-service
+          EXTERNAL_IP=$(kubectl get svc iris-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          echo "External IP: $EXTERNAL_IP"
+          echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+
+      - name: Install wrk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wrk
+
+      - name: Run Load Test
+        run: |
+          EXTERNAL_IP=${{ env.EXTERNAL_IP }}
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "External IP not found"
+            exit 1
+          fi
+          echo "Running load test against $EXTERNAL_IP/predict"
+          wrk -t4 -c1000 -d30s http://$EXTERNAL_IP/predict
