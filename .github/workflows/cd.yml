@@ -56,6 +56,15 @@ jobs:
         run: |
           kubectl apply -f k8s/hpa.yaml
 
+      - name: Initialize Feast
+        run: |
+          POD=$(kubectl get pods -l app=iris-api -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec "$POD" -- sh -c "
+            cd /app/feature_repo &&
+            feast apply &&
+            feast materialize-incremental \$(date -u +'%Y-%m-%dT%H:%M:%S')
+          "
+
       - name: Wait for LoadBalancer IP
         shell: bash
         run: |
