@@ -58,7 +58,11 @@ jobs:
 
       - name: Initialize Feast
         run: |
+          kubectl wait --for=condition=Ready pod -l app=iris-api --timeout=120s
+
           POD=$(kubectl get pods -l app=iris-api -o jsonpath='{.items[0].metadata.name}')
+          echo "Using pod: $POD"
+
           kubectl exec "$POD" -- sh -c "
             cd /app/feature_repo &&
             feast apply &&
