@@ -42,7 +42,7 @@ jobs:
       - name: Get GKE Credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: iris-cluster
+          cluster_name: iris-api-cluster
           location: us-central1
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
