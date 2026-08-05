@@ -27,7 +27,7 @@ def run_pipeline():
         ("50% Poisoned", os.path.join(data_dir, "iris_poisoned_50.csv"), 0.50),
     ]
 
-    mlflow.set_experiment("IRIS_MLSecOps_Poisoning_Analysis")
+    mlflow.set_experiment("IRIS_MLSecOps_Poisoning_Analysis2")
 
     for name, filepath, level in poison_configs:
         df = pd.read_csv(filepath)
