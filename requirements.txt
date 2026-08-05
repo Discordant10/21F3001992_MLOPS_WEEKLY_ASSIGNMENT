@@ -16,7 +16,7 @@ SQLAlchemy==2.0.51
 
 pytest
 pytest-cov
-pyyaml
+pyyaml>=6.0
 matplotlib
 
 google-cloud-storage

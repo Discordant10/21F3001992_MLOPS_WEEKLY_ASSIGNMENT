@@ -1,4 +1,6 @@
 [core]
-    remote = gcsremote
+    remote = storage
 ['remote "gcsremote"']
     url = gs://irisdata-week2-dvc
+['remote "storage"']
+    url = gs://irisdata-dvc
