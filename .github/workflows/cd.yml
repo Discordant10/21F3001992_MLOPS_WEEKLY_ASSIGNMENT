@@ -3,7 +3,7 @@ name: CD Pipeline
 on:
   push:
     branches:
-      - week_7
+      - week_8
 
 jobs:
   deploy:

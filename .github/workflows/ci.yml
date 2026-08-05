@@ -2,6 +2,9 @@ name: IRIS CI Pipeline
 
 on:
   pull_request:
+  push:
+    branches:
+      - week_8
 
 permissions:
   contents: read
