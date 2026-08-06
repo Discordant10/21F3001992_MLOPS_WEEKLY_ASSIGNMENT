@@ -56,9 +56,8 @@ This repository implements a robust, end-to-end Machine Learning Operations (MLO
 │   └── features.py
 ├── metrics/
 │   ├── train_metrics.json
-│   └── fairness_metrics.json          # NEW: Fairlearn demographic parity results
-├── reports/
-│   ├── report.md
+├── outputs/
+│   ├── report.md                      # NEW: Consolidated report
 │   ├── evidently_drift_report.html    # NEW: Data drift baseline report
 │   └── shap_virginica_summary.png     # NEW: SHAP feature importance plot
 ├── tests/

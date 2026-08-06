@@ -31,10 +31,10 @@ def main():
     )
 
     # Train classifier excluding the 'location' attribute
-    features = iris.feature_names
+    features_list = iris.feature_names
     clf = DecisionTreeClassifier(random_state=42)
-    clf.fit(X_train[features], y_train)
-    y_pred = clf.predict(X_test[features])
+    clf.fit(X_train[features_list], y_train)
+    y_pred = clf.predict(X_test[features_list])
 
     print("Model trained successfully.\n")
 
@@ -64,7 +64,7 @@ def main():
 
     print("--- Task 3: Generating SHAP Summary Plots ---")
     explainer = shap.TreeExplainer(clf)
-    shap_values = explainer.shap_values(X[features])
+    shap_values = explainer.shap_values(X[features_list])
 
     # Handle both old (list) and new (3D array) SHAP output formats
     if isinstance(shap_values, list):
@@ -75,7 +75,7 @@ def main():
 
     # Generate and save plot for virginica (Class 2)
     plt.figure(figsize=(8, 6))
-    shap.summary_plot(shap_virginica, X[features], show=False)
+    shap.summary_plot(shap_virginica, X[features_list], show=False)
     plt.title("SHAP Summary Plot - Virginica")
     plt.tight_layout()
     os.makedirs("outputs", exist_ok=True)
@@ -85,18 +85,46 @@ def main():
 
     print("--- Task 4: Detecting Data Drift with Evidently ---")
     # Simulate a production dataset by adding a constant offset to petal length
-    production_data = X[features].copy()
+    production_data = X[features_list].copy()
     production_data["petal length (cm)"] += 2.0
 
     # Generate Data Drift Report
     drift_report = Report(metrics=[DataDriftPreset()])
 
     # Capture the output of the run as an evaluation snapshot
-    my_eval = drift_report.run(reference_data=X[features], current_data=production_data)
+    my_eval = drift_report.run(
+        reference_data=X[features_list], current_data=production_data
+    )
 
     # Call save_html on the returned snapshot object
     my_eval.save_html("outputs/data_drift_report.html")
     print("Data Drift report generated and saved to outputs/data_drift_report.html\n")
+
+    print("--- Task 5: Generating Markdown Report ---")
+    group_str = mf.by_group.to_string()
+
+    # Create the content for the report.md file cleanly
+    report_content = (
+        "# IRIS Model Evaluation Report\n\n"
+        "## Fairness Audit\n"
+        "The model was evaluated for fairness across the synthetic `location` attribute using Fairlearn.\n\n"
+        "**Metrics by Location Group (0 vs 1):**\n"
+        "```text\n"
+        f"{group_str}\n"
+        "```\n\n"
+        "## Explainability\n"
+        "A SHAP summary plot has been generated to evaluate feature importance for the 'Virginica' class.\n"
+        "* **Artifact:** `shap_virginica_summary.png`\n\n"
+        "## Data Drift\n"
+        "A baseline data drift report has been generated comparing the training data against simulated production data.\n"
+        "* **Artifact:** `data_drift_report.html`\n"
+    )
+
+    # Save the report
+    with open("outputs/report.md", "w") as f:
+        f.write(report_content)
+
+    print("Markdown report generated and saved to outputs/report.md\n")
 
 
 if __name__ == "__main__":
