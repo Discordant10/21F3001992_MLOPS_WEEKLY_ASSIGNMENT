@@ -1,4 +1,5 @@
 import os
+from pyexpat import features
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -65,10 +66,16 @@ def main():
     explainer = shap.TreeExplainer(clf)
     shap_values = explainer.shap_values(X[features])
 
-    # For Iris, class 0: setosa, class 1: versicolor, class 2: virginica
+    # Handle both old (list) and new (3D array) SHAP output formats
+    if isinstance(shap_values, list):
+        shap_virginica = shap_values[2]
+    else:
+        # For newer SHAP versions: slice all samples, all features, 3rd class
+        shap_virginica = shap_values[:, :, 2]
+
     # Generate and save plot for virginica (Class 2)
     plt.figure(figsize=(8, 6))
-    shap.summary_plot(shap_values[2], X[features], show=False)
+    shap.summary_plot(shap_virginica, X[features], show=False)
     plt.title("SHAP Summary Plot - Virginica")
     plt.tight_layout()
     os.makedirs("outputs", exist_ok=True)
@@ -83,9 +90,12 @@ def main():
 
     # Generate Data Drift Report
     drift_report = Report(metrics=[DataDriftPreset()])
-    drift_report.run(reference_data=X[features], current_data=production_data)
 
-    drift_report.save_html("outputs/data_drift_report.html")
+    # Capture the output of the run as an evaluation snapshot
+    my_eval = drift_report.run(reference_data=X[features], current_data=production_data)
+
+    # Call save_html on the returned snapshot object
+    my_eval.save_html("outputs/data_drift_report.html")
     print("Data Drift report generated and saved to outputs/data_drift_report.html\n")
 
 
