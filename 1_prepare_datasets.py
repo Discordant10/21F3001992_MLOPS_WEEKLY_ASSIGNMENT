@@ -54,7 +54,7 @@ bucket = client.bucket(BUCKET_NAME)
 bucket.blob(v1_file).upload_from_filename(v1_file)
 bucket.blob(v2_file).upload_from_filename(v2_file)
 
-# Delete local files from VM
+# Delete local files from VM 
 if os.path.exists(v1_file):
     os.remove(v1_file)
 if os.path.exists(v2_file):
