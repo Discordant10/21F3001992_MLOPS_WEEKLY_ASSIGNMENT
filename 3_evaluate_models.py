@@ -5,7 +5,7 @@ import vertexai
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from vertexai.generative_models import GenerativeModel, GenerationConfig
 
-# Use numeric project ID to bypass Cloud Resource Manager API
+# Use numeric project ID to bypass Cloud Resource Manager API 
 PROJECT_ID = "124100860677"
 REGION = "us-central1"
 
