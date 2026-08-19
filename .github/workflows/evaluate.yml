@@ -1,4 +1,4 @@
-name: Prepare and Upload Iris Dataset
+name: Evaluate Fine-Tuned Gemini Models
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       - week_10
 
 jobs:
-  prepare-data:
+  evaluate-models:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -25,11 +25,30 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install scikit-learn google-cloud-storage
+          pip install scikit-learn google-cloud-storage google-cloud-aiplatform
 
-      - name: Run Dataset Preparation Script
+      - name: Download Test Datasets from GCS
         env:
           GCP_BUCKET: ${{ secrets.GCP_BUCKET }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          python3 1_prepare_datasets.py
+          python3 -c "
+          from google.cloud import storage
+          import os
+          bucket_name = os.getenv('GCP_BUCKET')
+          client = storage.Client()
+          bucket = client.bucket(bucket_name)
+          bucket.blob('v1_test.jsonl').download_to_filename('v1_test.jsonl')
+          bucket.blob('v2_test.jsonl').download_to_filename('v2_test.jsonl')
+          print('Downloaded test files from GCS.')
+          "
+
+      - name: Run Model Evaluation
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          V1_ENDPOINT: ${{ secrets.V1_ENDPOINT }}
+          V2_ENDPOINT: ${{ secrets.V2_ENDPOINT }}
+        run: |
+          python3 3_evaluate_models.py \
+            --v1-endpoint "$V1_ENDPOINT" \
+            --v2-endpoint "$V2_ENDPOINT" \
+            --min-accuracy 0.80
