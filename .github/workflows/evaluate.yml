@@ -2,6 +2,9 @@ name: Prepare and Upload Iris Dataset
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - week_10
 
 jobs:
   prepare-data:
