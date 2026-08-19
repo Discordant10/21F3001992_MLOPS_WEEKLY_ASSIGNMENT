@@ -1,0 +1,34 @@
+name: LLMOps Regression Evaluation
+on:
+  push:
+    branches:
+      - week_10
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # You must configure Workload Identity Federation in GCP to get this provider string
+          workload_identity_provider: "projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+          service_account: "mlops-evaluator@YOUR_PROJECT_ID.iam.gserviceaccount.com"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install google-cloud-aiplatform scikit-learn pandas
+
+      - name: Run Evaluation Script
+        run: python 3_evaluate_models.py --min-accuracy 0.90
